@@ -9,4 +9,6 @@ import { RouterModule } from '@angular/router';
 })
 export class AppComponent {
   public title = 'shell';
+
+  text = 'test husky';
 }
