@@ -1,0 +1,3 @@
+[submodule "apps/shell/apps/shell/authentication"]
+	path = apps/shell/apps/shell/authentication
+	url = https://github.com/LucasTrevelin/authentication

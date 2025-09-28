@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Primary Colors */
+  --color-primary: #006E2C;
+  --color-on-primary: #FFFFFF;
+  --color-primary-container: #1ED760;
+  --color-on-primary-container: #006E2C;
+
+  /* Secondary Colors */
+  --color-secondary: #226C34;
+  --color-on-secondary: #FFFFFF;
+  --color-secondary-container: #A5F2AB;
+  --color-on-secondary-container: #226C34;
+
+  /* Tertiary Colors */
+  --color-tertiary: #006689;
+  --color-on-tertiary: #FFFFFF;
+  --color-tertiary-container: #4FC7FF;
+  --color-on-tertiary-container: #006689;
+
+  /* Surface Colors */
+  --color-surface-dim: #DDD9D9;
+  --color-surface: #FCF8F8;
+  --color-surface-container-lowest: #FFFFFF;
+  --color-surface-container-low: #F6F3F2;
+  --color-surface-container: #F1EDEC;
+  --color-surface-container-high: #EBE7E7;
+  --color-surface-container-highest: #E5E2E1;
+  --color-on-surface: #1C1B1B;
+  --color-on-surface-variant: #444748;
+  --color-outline: #747878;
+  --color-outline-variant: #C4C7C8;
+
+  /* Error Colors */
+  --color-error: #BA1A1A;
+  --color-on-error: #FFFFFF;
+  --color-error-container: #FFDAD6;
+
+  /* Additional Colors */
+  --color-scrim: #000000;
+  --color-shadow: #000000;
+}
