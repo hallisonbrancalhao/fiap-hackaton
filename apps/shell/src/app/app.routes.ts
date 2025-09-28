@@ -1,5 +1,4 @@
 import { Route } from '@angular/router';
-import { AppComponent } from './app.component';
 
 export const appRoutes: Route[] = [
   {
@@ -8,6 +7,6 @@ export const appRoutes: Route[] = [
   },
   {
     path: '',
-    component: AppComponent,
+    loadChildren: () => import('@fiap-farm/dashboard-shell').then((m) => m.dashboardRoutes),
   },
 ];
