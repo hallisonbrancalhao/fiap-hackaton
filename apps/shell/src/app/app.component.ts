@@ -1,13 +1,9 @@
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { Button } from 'primeng/button';
 
 @Component({
-	imports: [RouterModule, Button],
+	imports: [RouterModule],
 	selector: 'app-root',
-	templateUrl: './app.component.html',
-	styleUrls: ['./app.component.css']
+	template: `<router-outlet />`
 })
-export class AppComponent {
-	public title = 'shell';
-}
+export class AppComponent {}
