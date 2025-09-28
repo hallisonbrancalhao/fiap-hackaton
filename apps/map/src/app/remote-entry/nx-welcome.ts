@@ -436,7 +436,7 @@ import { CommonModule } from '@angular/common';
           </h1>
         </div>
         <!--  HERO  -->
-        <div id="hero" class="rounded">
+        <div id="hero" class="rounded-sm">
           <div class="text-container">
             <h2>
               <svg
@@ -472,7 +472,7 @@ import { CommonModule } from '@angular/common';
         <!--  MIDDLE CONTENT  -->
         <div id="middle-content">
           <div id="middle-left-content">
-            <div id="learning-materials" class="rounded shadow">
+            <div id="learning-materials" class="rounded-sm shadow-sm">
               <h2>Learning materials</h2>
               <a
                 href="https://nx.dev/getting-started/intro?utm_source=nx-project"
@@ -623,7 +623,7 @@ import { CommonModule } from '@angular/common';
             </div>
             <a
               id="nx-repo"
-              class="button-pill rounded shadow"
+              class="button-pill rounded-sm shadow-sm"
               href="https://github.com/nrwl/nx?utm_source=nx-project"
               target="_blank"
               rel="noreferrer"
@@ -646,7 +646,7 @@ import { CommonModule } from '@angular/common';
           </div>
           <div id="other-links">
             <a
-              class="button-pill rounded shadow nx-console"
+              class="button-pill rounded-sm shadow-sm nx-console"
               href="https://marketplace.visualstudio.com/items?itemName=nrwl.angular-console&utm_source=nx-project"
               target="_blank"
               rel="noreferrer"
@@ -668,7 +668,7 @@ import { CommonModule } from '@angular/common';
               </span>
             </a>
             <a
-              class="button-pill rounded shadow nx-console-jetbrains"
+              class="button-pill rounded-sm shadow-sm nx-console-jetbrains"
               href="https://plugins.jetbrains.com/plugin/21060-nx-console"
               target="_blank"
               rel="noreferrer"
@@ -715,7 +715,7 @@ import { CommonModule } from '@angular/common';
                 >
               </span>
             </a>
-            <div id="nx-cloud" class="rounded shadow">
+            <div id="nx-cloud" class="rounded-sm shadow-sm">
               <div>
                 <svg
                   id="nx-cloud-logo"
@@ -748,7 +748,7 @@ import { CommonModule } from '@angular/common';
           </div>
         </div>
         <!--  COMMANDS  -->
-        <div id="commands" class="rounded shadow">
+        <div id="commands" class="rounded-sm shadow-sm">
           <h2>Next steps</h2>
           <p>Here are some things you can do with Nx:</p>
           <details>
