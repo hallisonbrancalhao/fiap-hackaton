@@ -5,11 +5,18 @@ import {
 } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { appRoutes } from './app.routes';
+import { providePrimeNG } from 'primeng/config';
+
+import FarmTheme from '@fiap-farm/ui-components';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(appRoutes),
+		providePrimeNG({
+			theme: FarmTheme,
+			ripple: true,
+		}),
   ],
 };

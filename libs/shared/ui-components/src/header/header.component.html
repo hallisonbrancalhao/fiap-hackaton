@@ -1,19 +1,10 @@
-<nav class="bg-primary border-b border-gray-200">
-  <div class="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
-    <div class="relative flex h-16 items-center justify-between">
-      <div class="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
-        <div class="flex flex-shrink-0 items-center">
-          <div class="dark:text-white text-2xl font-bold text-green-500">FIAP FARM</div>
-        </div>
-      </div>
-      <div class="absolute inset-y-0 right-0 flex items-center pr-2 sm:static sm:inset-auto sm:ml-6 sm:pr-0">
-        <div class="hidden sm:ml-6 sm:block">
-          <div class="flex space-x-4">
-            <a href="#" class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Login</a>
-            <a href="#" class="text-gray-300 hover:bg-gray-700 hover:text-white rounded-md px-3 py-2 text-sm font-medium">Sair</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</nav>
+<p-menubar [model]="items()">
+  <ng-template #start>
+    <a routerLink="/" class="flex align-items-center gap-2">
+      <img src="logo.svg" alt="Logo" class="mr-2 h-20" />
+    </a>
+  </ng-template>
+  <ng-template #end>
+    <p-button type="button" label="Login" class="p-button-outlined" icon="pi pi-user" size="small" />
+  </ng-template>
+</p-menubar>
