@@ -21,7 +21,7 @@
             "input": "apps/map/public"
           }
         ],
-        "styles": ["apps/map/src/styles.css"],
+        "styles": ["apps/map/src/styles.scss"],
         "customWebpackConfig": {
           "path": "apps/map/webpack.config.ts"
         }

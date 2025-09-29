@@ -1,0 +1,10 @@
+<p-menubar [model]="items()">
+  <ng-template #start>
+    <a routerLink="/" class="flex align-items-center gap-2">
+      <img src="logo.svg" alt="Logo" class="mr-2 h-20" />
+    </a>
+  </ng-template>
+  <ng-template #end>
+    <p-button type="button" label="Login" class="p-button-outlined" icon="pi pi-user" size="small" />
+  </ng-template>
+</p-menubar>
