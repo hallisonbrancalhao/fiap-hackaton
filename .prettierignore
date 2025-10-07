@@ -4,3 +4,8 @@
 /.nx/cache
 /.nx/workspace-data
 .angular
+
+# Ignore artifacts:
+build
+node_modules
+out-tsc

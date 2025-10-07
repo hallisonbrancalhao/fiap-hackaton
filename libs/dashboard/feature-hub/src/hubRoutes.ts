@@ -38,5 +38,20 @@ export const hubRoutes: Routes = [
 				loadComponent: () => import('./lib/farms/features/stats/farms-stats.component').then(c => c.FarmsStatsComponent)
 			}
 		]
+	},
+	{
+		path: 'products',
+		title: 'Fiap Farm | Produtos',
+		loadComponent: () => import('@fiap-hackaton/dashboard-feature-products').then(c => c.ProductListComponent),
+	},
+	{
+		path: 'sales',
+		title: 'Fiap Farm | Vendas',
+		loadComponent: () => import('@fiap-hackaton/dashboard-feature-sales').then(c => c.SaleListComponent),
+	},
+	{
+		path: 'analytics',
+		title: 'Fiap Farm | Analytics',
+		loadComponent: () => import('@fiap-hackaton/dashboard-feature-analytics').then(c => c.AnalyticsDashboardComponent),
 	}
 ];

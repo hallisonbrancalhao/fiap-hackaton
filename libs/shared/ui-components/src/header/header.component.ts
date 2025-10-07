@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { Menubar } from 'primeng/menubar';
 import { MenuItem } from 'primeng/api';
 import { RouterLink } from '@angular/router';
@@ -11,6 +11,11 @@ import { Button } from 'primeng/button';
 })
 export class HeaderComponent {
 	items = signal<MenuItem[]>([
+		{
+			label: 'Dashboard',
+			icon: 'pi pi-th-large',
+			routerLink: '/dashboard'
+		},
 		{
 			label: 'Início',
 			icon: 'pi pi-home'

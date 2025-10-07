@@ -1,1 +1,270 @@
-<p>FeatureRegister works!</p>
+<div class="min-h-screen flex items-center justify-center bg-surface-50 dark:bg-surface-900 px-4 py-8">
+  <div class="w-full max-w-2xl">
+    <!-- Logo/Header -->
+    <div class="text-center mb-8">
+      <div class="flex justify-center mb-4">
+        <img src="logo.svg" alt="FIAP FARM" class="h-20" />
+      </div>
+      <p class="text-surface-600 dark:text-surface-400">
+        Crie sua conta para começar a gerenciar sua fazenda
+      </p>
+    </div>
+
+    <!-- Register Card -->
+    <lib-card title="Cadastro" subtitle="Preencha suas informações para criar uma conta">
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+        <!-- Success Message -->
+        @if (registerFacade.success()) {
+          <p-message
+            severity="success"
+            text="Cadastro realizado com sucesso! Redirecionando para o login..."
+            styleClass="mb-4 w-full"
+          />
+        }
+
+        <!-- Error Message -->
+        @if (registerFacade.error()) {
+          <p-message
+            severity="error"
+            [text]="registerFacade.error()!"
+            styleClass="mb-4 w-full"
+          />
+        }
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Name Field -->
+          <div class="mb-4">
+            <label for="name" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+              Nome Completo *
+            </label>
+            <input
+              pInputText
+              id="name"
+              formControlName="name"
+              type="text"
+              placeholder="João Silva"
+              class="w-full"
+              [class.ng-invalid]="hasError('name')"
+              [class.ng-dirty]="hasError('name')"
+              data-testid="name-input"
+            />
+            @if (hasError('name')) {
+              <small class="text-red-500 mt-1 block" data-testid="name-error">
+                {{ getErrorMessage('name') }}
+              </small>
+            }
+          </div>
+
+          <!-- Email Field -->
+          <div class="mb-4">
+            <label for="email" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+              E-mail *
+            </label>
+            <input
+              pInputText
+              id="email"
+              formControlName="email"
+              type="email"
+              placeholder="seu@email.com"
+              class="w-full"
+              [class.ng-invalid]="hasError('email')"
+              [class.ng-dirty]="hasError('email')"
+              data-testid="email-input"
+            />
+            @if (hasError('email')) {
+              <small class="text-red-500 mt-1 block" data-testid="email-error">
+                {{ getErrorMessage('email') }}
+              </small>
+            }
+          </div>
+
+          <!-- Password Field -->
+          <div class="mb-4">
+            <label for="password" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+              Senha *
+            </label>
+            <p-password
+              formControlName="password"
+              inputId="password"
+              placeholder="Mínimo 6 caracteres"
+              [toggleMask]="true"
+              styleClass="w-full"
+              inputStyleClass="w-full"
+              [class.ng-invalid]="hasError('password')"
+              [class.ng-dirty]="hasError('password')"
+              data-testid="password-input"
+            />
+            @if (hasError('password')) {
+              <small class="text-red-500 mt-1 block" data-testid="password-error">
+                {{ getErrorMessage('password') }}
+              </small>
+            }
+          </div>
+
+          <!-- Confirm Password Field -->
+          <div class="mb-4">
+            <label for="confirmPassword" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+              Confirmar Senha *
+            </label>
+            <p-password
+              formControlName="confirmPassword"
+              inputId="confirmPassword"
+              placeholder="Digite a senha novamente"
+              [toggleMask]="true"
+              [feedback]="false"
+              styleClass="w-full"
+              inputStyleClass="w-full"
+              [class.ng-invalid]="hasError('confirmPassword')"
+              [class.ng-dirty]="hasError('confirmPassword')"
+              data-testid="confirm-password-input"
+            />
+            @if (hasError('confirmPassword')) {
+              <small class="text-red-500 mt-1 block" data-testid="confirm-password-error">
+                {{ getErrorMessage('confirmPassword') }}
+              </small>
+            }
+          </div>
+
+          <!-- Farm Name Field -->
+          <div class="mb-4">
+            <label for="farmName" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+              Nome da Fazenda *
+            </label>
+            <input
+              pInputText
+              id="farmName"
+              formControlName="farmName"
+              type="text"
+              placeholder="Fazenda Vale Verde"
+              class="w-full"
+              [class.ng-invalid]="hasError('farmName')"
+              [class.ng-dirty]="hasError('farmName')"
+              data-testid="farm-name-input"
+            />
+            @if (hasError('farmName')) {
+              <small class="text-red-500 mt-1 block" data-testid="farm-name-error">
+                {{ getErrorMessage('farmName') }}
+              </small>
+            }
+          </div>
+
+          <!-- Phone Field -->
+          <div class="mb-4">
+            <label for="phone" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+              Phone
+            </label>
+            <input
+              pInputText
+              id="phone"
+              formControlName="phone"
+              type="tel"
+              placeholder="+55 11 99999-9999"
+              class="w-full"
+              data-testid="phone-input"
+            />
+          </div>
+
+          <!-- Address Field -->
+          <div class="mb-4 md:col-span-2">
+            <label for="address" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+              Endereço da Fazenda *
+            </label>
+            <input
+              pInputText
+              id="address"
+              formControlName="address"
+              type="text"
+              placeholder="Rua da Fazenda 123, Cidade, Estado"
+              class="w-full"
+              [class.ng-invalid]="hasError('address')"
+              [class.ng-dirty]="hasError('address')"
+              data-testid="address-input"
+            />
+            @if (hasError('address')) {
+              <small class="text-red-500 mt-1 block" data-testid="address-error">
+                {{ getErrorMessage('address') }}
+              </small>
+            }
+          </div>
+
+          <!-- Map Location Picker Button -->
+          <div class="mb-4 md:col-span-2">
+            <div class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+              Localização da Fazenda *
+            </div>
+            <p-button
+              type="button"
+              label="Definir local da sua fazenda"
+              icon="pi pi-map-marker"
+              severity="secondary"
+              [outlined]="true"
+              styleClass="w-full"
+              (onClick)="onOpenMapPicker()"
+              data-testid="map-picker-button"
+            />
+            @if (registerForm.get('latitude')?.value && registerForm.get('longitude')?.value) {
+              <div class="mt-2 p-2 bg-green-50 dark:bg-green-900 rounded text-sm text-green-700 dark:text-green-300">
+                <i class="pi pi-check-circle mr-2"></i>
+                Localização definida: {{ registerForm.get('latitude')?.value.toFixed(6) }}, {{ registerForm.get('longitude')?.value.toFixed(6) }}
+              </div>
+            }
+            @if (hasError('latitude') || hasError('longitude')) {
+              <small class="text-red-500 mt-1 block" data-testid="location-error">
+                Por favor, defina a localização da sua fazenda
+              </small>
+            }
+          </div>
+
+          <!-- Hidden Latitude Field -->
+          <input
+            type="hidden"
+            formControlName="latitude"
+            data-testid="latitude-input"
+          />
+
+          <!-- Hidden Longitude Field -->
+          <input
+            type="hidden"
+            formControlName="longitude"
+            data-testid="longitude-input"
+          />
+        </div>
+
+        <!-- Submit Button -->
+        <div class="mt-6">
+          <p-button
+            type="submit"
+            label="Criar Conta"
+            icon="pi pi-user-plus"
+            styleClass="w-full"
+            [loading]="registerFacade.isLoading()"
+            [disabled]="registerFacade.isLoading() || registerFacade.success()"
+            data-testid="submit-button"
+          />
+        </div>
+
+        <!-- Divider -->
+        <div class="my-6 flex items-center">
+          <div class="flex-1 border-t border-surface-300 dark:border-surface-600"></div>
+          <span class="px-4 text-sm text-surface-500 dark:text-surface-400">ou</span>
+          <div class="flex-1 border-t border-surface-300 dark:border-surface-600"></div>
+        </div>
+
+        <!-- Login Link -->
+        <div class="text-center">
+          <p class="text-sm text-surface-600 dark:text-surface-400">
+            Já tem uma conta?
+            <button
+              type="button"
+              (click)="onLoginClick()"
+              class="text-primary-600 dark:text-primary-400 hover:underline font-medium ml-1"
+              data-testid="login-link"
+            >
+              Entrar
+            </button>
+          </p>
+        </div>
+      </form>
+    </lib-card>
+  </div>
+</div>

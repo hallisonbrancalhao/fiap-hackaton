@@ -25,6 +25,33 @@ Este projeto implementa uma **arquitetura de micro-frontends** usando Module Fed
 - O `shell` consome remotamente o `map` através da configuração `remotes: ['map']`
 - O `map` expõe suas rotas via `'./Routes': 'apps/map/src/app/remote-entry/entry.routes.ts'`
 
+### Dependencies Rules:
+Shell-type libraries can only depend on feature, data-access, ui, or util libraries
+Feature-type libraries can only depend on data-access, ui, or util libraries
+Data-access-type libraries can only depend on domain or util libraries
+Domain-type libraries can only depend on api or util libraries
+UI-type libraries can only depend on ui or util libraries
+Util-type libraries can only depend on util libraries
+API-type libraries can only depend on libraries within their own scope
+
+## State Management and Component Architecture
+
+All component logic and state management **must** be handled through the **Facade Pattern**. Components should be "dumb" (presentational) and only consume and display data from facades.
+
+### Rules:
+- **Facades** are responsible for:
+  - Managing component state
+  - Handling business logic
+  - Orchestrating API calls via data-access services
+  - Exposing observables/signals for components to consume
+
+- **Components** must:
+  - Be presentational only (dumb/stateless)
+  - Subscribe to facade observables/signals
+  - Emit user actions back to the facade
+  - Contain minimal to no business logic
+  - Focus solely on template rendering and user interaction
+
 ## Commands and Scripts
 
 ### Development
