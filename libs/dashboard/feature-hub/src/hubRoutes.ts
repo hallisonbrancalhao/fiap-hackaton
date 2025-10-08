@@ -42,7 +42,23 @@ export const hubRoutes: Routes = [
 	{
 		path: 'products',
 		title: 'Fiap Farm | Produtos',
-		loadComponent: () => import('@fiap-hackaton/dashboard-feature-products').then(c => c.ProductListComponent),
+		children: [
+			{
+				path: '',
+				title: 'Fiap Farm | Produtos',
+				loadComponent: () => import('@fiap-hackaton/dashboard-feature-products').then(c => c.ProductListComponent),
+			},
+			{
+				path: 'new',
+				title: 'Fiap Farm | Novo Produto',
+				loadComponent: () => import('@fiap-hackaton/dashboard-feature-products').then(c => c.ProductFormComponent),
+			},
+			{
+				path: 'edit/:id',
+				title: 'Fiap Farm | Editar Produto',
+				loadComponent: () => import('@fiap-hackaton/dashboard-feature-products').then(c => c.ProductFormComponent),
+			}
+		]
 	},
 	{
 		path: 'sales',

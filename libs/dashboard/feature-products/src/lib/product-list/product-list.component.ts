@@ -116,9 +116,6 @@ export class ProductListComponent implements OnInit {
       next: () => {
         this.loadProducts();
       },
-      error: () => {
-        // Error deleting product
-      },
     });
   }
 
@@ -128,10 +125,10 @@ export class ProductListComponent implements OnInit {
 
   private loadProducts(): void {
     this.isLoading.set(true);
-    // TODO: Get userId from auth service
-    const userId = 'test-user-id';
+    // TODO: Get farmId from auth service
+    const farmId = 'fiap-farms-3e501';
 
-    this.productFacade.getByUserId(userId).subscribe({
+    this.productFacade.getByFarmId(farmId).subscribe({
       next: (products) => {
         this.products.set(products);
         this.isLoading.set(false);

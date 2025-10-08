@@ -239,10 +239,10 @@ export class SaleListComponent implements OnInit {
 
 	private loadSales(): void {
 		this.isLoading.set(true);
-		// TODO: Get userId from auth service
-		const userId = 'test-user-id';
+		// TODO: Get farmId from auth service
+		const farmId = 'fiap-farms-3e501';
 
-		this.saleFacade.getByUserId(userId).subscribe({
+		this.saleFacade.getByFarmId(farmId).subscribe({
 			next: (sales) => {
 				this.sales.set(sales);
 				this.filterSales();

@@ -76,6 +76,11 @@ export abstract class BaseRepository<T extends DocumentData> {
     return this.getAll(allConstraints);
   }
 
+  getByFarmId(farmId: string, constraints: QueryConstraint[] = []): Observable<T[]> {
+    const allConstraints = [where('farmId', '==', farmId), ...constraints];
+    return this.getAll(allConstraints);
+  }
+
   list(
     options?: {
       limitCount?: number;

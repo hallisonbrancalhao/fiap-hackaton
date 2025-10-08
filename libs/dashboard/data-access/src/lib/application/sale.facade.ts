@@ -30,20 +30,24 @@ export class SaleFacade {
     return this.repository.getByUserId(userId);
   }
 
-  getByStatus(userId: string, status: SALE_STATUS): Observable<Sale[]> {
-    return this.repository.getByStatus(userId, status);
+  getByFarmId(farmId: string): Observable<Sale[]> {
+    return this.repository.getByFarmId(farmId);
+  }
+
+  getByStatus(farmId: string, status: SALE_STATUS): Observable<Sale[]> {
+    return this.repository.getByStatus(farmId, status);
   }
 
   getByDateRange(
-    userId: string,
+    farmId: string,
     startDate: Timestamp,
     endDate: Timestamp
   ): Observable<Sale[]> {
-    return this.repository.getByDateRange(userId, startDate, endDate);
+    return this.repository.getByDateRange(farmId, startDate, endDate);
   }
 
-  getRecentSales(userId: string, limit?: number): Observable<Sale[]> {
-    return this.repository.getRecentSales(userId, limit);
+  getRecentSales(farmId: string, limit?: number): Observable<Sale[]> {
+    return this.repository.getRecentSales(farmId, limit);
   }
 
   updateStatus(id: string, status: SALE_STATUS): Observable<void> {

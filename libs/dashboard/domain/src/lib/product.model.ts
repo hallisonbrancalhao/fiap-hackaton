@@ -18,13 +18,15 @@ export enum PRODUCT_UNIT {
 
 export interface Product {
   id?: string;
-  userId: string;
+  userId?: string;
+  farmId?: string;
   name: string;
-  category: PRODUCT_CATEGORY;
-  unit: PRODUCT_UNIT;
+  category: PRODUCT_CATEGORY | string;
+  unit: PRODUCT_UNIT | string;
   pricePerUnit: number;
   description?: string;
   imageUrl?: string;
+  quantity?: number;
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
 }

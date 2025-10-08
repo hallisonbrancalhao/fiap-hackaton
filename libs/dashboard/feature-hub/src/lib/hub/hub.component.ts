@@ -16,26 +16,26 @@ import { Router } from '@angular/router';
         </p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Produtos Card -->
         <div
           (click)="navigate('/dashboard/products')"
           (keyup.enter)="navigate('/dashboard/products')"
           tabindex="0"
           role="button"
-          class="cursor-pointer group bg-white dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700 hover:shadow-lg transition-all p-6"
+          class="cursor-pointer group bg-white dark:bg-surface-800 rounded-xl border-2 border-surface-200 dark:border-surface-700 hover:border-emerald-500 hover:shadow-xl transition-all duration-300 p-8"
         >
-          <div class="flex items-center justify-between mb-4">
-            <div class="p-4 bg-primary-50 dark:bg-primary-900 rounded-lg group-hover:scale-110 transition-transform">
-              <i class="pi pi-box text-3xl text-primary-600 dark:text-primary-400"></i>
+          <div class="flex flex-col items-center text-center">
+            <div class="mb-6 p-5 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900 dark:to-emerald-800 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+              <i class="pi pi-box text-5xl text-emerald-600 dark:text-emerald-400"></i>
             </div>
+            <h3 class="text-2xl font-bold text-surface-900 dark:text-surface-0 mb-3">
+              Produtos
+            </h3>
+            <p class="text-surface-600 dark:text-surface-400">
+              Gerencie o catálogo de produtos da sua fazenda
+            </p>
           </div>
-          <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-0 mb-2">
-            Produtos
-          </h3>
-          <p class="text-surface-600 dark:text-surface-400 text-sm">
-            Gerencie o catálogo de produtos da sua fazenda
-          </p>
         </div>
 
         <!-- Vendas Card -->
@@ -44,19 +44,19 @@ import { Router } from '@angular/router';
           (keyup.enter)="navigate('/dashboard/sales')"
           tabindex="0"
           role="button"
-          class="cursor-pointer group bg-white dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700 hover:shadow-lg transition-all p-6"
+          class="cursor-pointer group bg-white dark:bg-surface-800 rounded-xl border-2 border-surface-200 dark:border-surface-700 hover:border-blue-500 hover:shadow-xl transition-all duration-300 p-8"
         >
-          <div class="flex items-center justify-between mb-4">
-            <div class="p-4 bg-green-50 dark:bg-green-900 rounded-lg group-hover:scale-110 transition-transform">
-              <i class="pi pi-shopping-cart text-3xl text-green-600 dark:text-green-400"></i>
+          <div class="flex flex-col items-center text-center">
+            <div class="mb-6 p-5 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+              <i class="pi pi-shopping-cart text-5xl text-blue-600 dark:text-blue-400"></i>
             </div>
+            <h3 class="text-2xl font-bold text-surface-900 dark:text-surface-0 mb-3">
+              Vendas
+            </h3>
+            <p class="text-surface-600 dark:text-surface-400">
+              Acompanhe suas vendas e receitas
+            </p>
           </div>
-          <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-0 mb-2">
-            Vendas
-          </h3>
-          <p class="text-surface-600 dark:text-surface-400 text-sm">
-            Acompanhe suas vendas e receitas
-          </p>
         </div>
 
         <!-- Analytics Card -->
@@ -65,40 +65,19 @@ import { Router } from '@angular/router';
           (keyup.enter)="navigate('/dashboard/analytics')"
           tabindex="0"
           role="button"
-          class="cursor-pointer group bg-white dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700 hover:shadow-lg transition-all p-6"
+          class="cursor-pointer group bg-white dark:bg-surface-800 rounded-xl border-2 border-surface-200 dark:border-surface-700 hover:border-purple-500 hover:shadow-xl transition-all duration-300 p-8"
         >
-          <div class="flex items-center justify-between mb-4">
-            <div class="p-4 bg-blue-50 dark:bg-blue-900 rounded-lg group-hover:scale-110 transition-transform">
-              <i class="pi pi-chart-line text-3xl text-blue-600 dark:text-blue-400"></i>
+          <div class="flex flex-col items-center text-center">
+            <div class="mb-6 p-5 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900 dark:to-purple-800 rounded-2xl group-hover:scale-110 transition-transform duration-300">
+              <i class="pi pi-chart-line text-5xl text-purple-600 dark:text-purple-400"></i>
             </div>
+            <h3 class="text-2xl font-bold text-surface-900 dark:text-surface-0 mb-3">
+              Análises
+            </h3>
+            <p class="text-surface-600 dark:text-surface-400">
+              Visualize relatórios e estatísticas
+            </p>
           </div>
-          <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-0 mb-2">
-            Análises
-          </h3>
-          <p class="text-surface-600 dark:text-surface-400 text-sm">
-            Visualize relatórios e estatísticas
-          </p>
-        </div>
-
-        <!-- Fazendas Card -->
-        <div
-          (click)="navigate('/dashboard/farms')"
-          (keyup.enter)="navigate('/dashboard/farms')"
-          tabindex="0"
-          role="button"
-          class="cursor-pointer group bg-white dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700 hover:shadow-lg transition-all p-6"
-        >
-          <div class="flex items-center justify-between mb-4">
-            <div class="p-4 bg-orange-50 dark:bg-orange-900 rounded-lg group-hover:scale-110 transition-transform">
-              <i class="pi pi-map text-3xl text-orange-600 dark:text-orange-400"></i>
-            </div>
-          </div>
-          <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-0 mb-2">
-            Fazendas
-          </h3>
-          <p class="text-surface-600 dark:text-surface-400 text-sm">
-            Gerencie suas fazendas e propriedades
-          </p>
         </div>
       </div>
 

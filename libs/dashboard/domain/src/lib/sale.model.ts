@@ -17,13 +17,14 @@ export interface SaleItem {
 
 export interface Sale {
   id?: string;
-  userId: string;
+  userId?: string;
+  farmId?: string;
   items: SaleItem[];
   totalAmount: number;
   customerName?: string;
   customerContact?: string;
   status: SALE_STATUS;
-  saleDate: Timestamp;
+  saleDate: Timestamp | Date;
   notes?: string;
   createdAt?: Timestamp;
   updatedAt?: Timestamp;

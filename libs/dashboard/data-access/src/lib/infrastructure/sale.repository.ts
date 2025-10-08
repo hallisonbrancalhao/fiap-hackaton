@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { BaseRepository } from './base.repository';
 import { Sale, SALE_STATUS } from '@fiap-hackaton/dashboard-domain';
 import { Observable } from 'rxjs';
-import { where, orderBy, limit, Timestamp } from '@angular/fire/firestore';
+import { where, limit, Timestamp } from '@angular/fire/firestore';
 
 @Injectable({
   providedIn: 'root',
@@ -10,30 +10,27 @@ import { where, orderBy, limit, Timestamp } from '@angular/fire/firestore';
 export class SaleRepository extends BaseRepository<Sale> {
   protected collectionName = 'sales';
 
-  getByStatus(userId: string, status: SALE_STATUS): Observable<Sale[]> {
+  getByStatus(farmId: string, status: SALE_STATUS): Observable<Sale[]> {
     return this.getAll([
-      where('userId', '==', userId),
-      where('status', '==', status),
-      orderBy('saleDate', 'desc')
+      where('farmId', '==', farmId),
+      where('status', '==', status)
     ]);
   }
 
   getByDateRange(
-    userId: string,
+    farmId: string,
     startDate: Timestamp,
     endDate: Timestamp
   ): Observable<Sale[]> {
     return this.getAll([
-      where('userId', '==', userId),
+      where('farmId', '==', farmId),
       where('saleDate', '>=', startDate),
-      where('saleDate', '<=', endDate),
-      orderBy('saleDate', 'desc')
+      where('saleDate', '<=', endDate)
     ]);
   }
 
-  getRecentSales(userId: string, limitCount = 10): Observable<Sale[]> {
-    return this.getByUserId(userId, [
-      orderBy('saleDate', 'desc'),
+  getRecentSales(farmId: string, limitCount = 10): Observable<Sale[]> {
+    return this.getByFarmId(farmId, [
       limit(limitCount)
     ]);
   }

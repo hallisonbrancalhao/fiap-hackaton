@@ -12,31 +12,24 @@ import { Button } from 'primeng/button';
 export class HeaderComponent {
 	items = signal<MenuItem[]>([
 		{
-			label: 'Dashboard',
-			icon: 'pi pi-th-large',
+			label: 'Início',
+			icon: 'pi pi-home',
 			routerLink: '/dashboard'
 		},
 		{
-			label: 'Início',
-			icon: 'pi pi-home'
+			label: 'Produtos',
+			icon: 'pi pi-box',
+			routerLink: '/dashboard/products'
 		},
 		{
-			label: 'Funcionalidades',
-			icon: 'pi pi-star'
+			label: 'Vendas',
+			icon: 'pi pi-shopping-cart',
+			routerLink: '/dashboard/sales'
 		},
 		{
-			label: 'Fazendas',
-			icon: 'pi pi-search',
-			items: [
-				{
-					label: 'Compras',
-					icon: 'pi pi-shopping-cart'
-				}
-			]
-		},
-		{
-			label: 'Contato',
-			icon: 'pi pi-envelope'
+			label: 'Análises',
+			icon: 'pi pi-chart-line',
+			routerLink: '/dashboard/analytics'
 		}
 	]);
 }
