@@ -8,6 +8,7 @@ export interface Location {
 
 export interface FarmUser {
   id?: string;
+  farmId?: string;
   name: string;
   email: string;
   phone?: string;
