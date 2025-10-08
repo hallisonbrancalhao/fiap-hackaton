@@ -68,7 +68,6 @@ export class HubComponent implements AfterViewInit {
   private readonly destroyRef = inject(DestroyRef);
 
   ngAfterViewInit(): void {
-    // Usar setTimeout para garantir que estamos no contexto de injeção correto
     setTimeout(() => this.loadDashboardStats(), 0);
   }
 

@@ -2,6 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { Observable, delay, tap, map } from 'rxjs';
 import { FarmUser } from '@fiap-hackaton/auth-domain';
 import { FarmUserRepository } from '../infrastructure/farm-user.repository';
+import { AuthStorageService } from '../infrastructure/auth-storage.service';
 
 export interface LoginCredentials {
   email: string;
@@ -22,7 +23,18 @@ export class AuthLoginFacade {
   currentUser = signal<FarmUser | null>(null);
 
   private repository = inject(FarmUserRepository);
+  private storage = inject(AuthStorageService);
 
+  /**
+   * Inicializa o facade, restaurando sessão se existir
+   */
+  constructor() {
+    this.restoreSession();
+  }
+
+  /**
+   * Realiza login do usuário
+   */
   login(credentials: LoginCredentials): Observable<LoginResponse> {
     this.isLoading.set(true);
     this.error.set(null);
@@ -37,7 +49,7 @@ export class AuthLoginFacade {
           }
 
           const user = users[0];
-          this.currentUser.set(user);
+          this.setUserSession(user);
           this.isLoading.set(false);
         },
         error: (err) => {
@@ -58,6 +70,7 @@ export class AuthLoginFacade {
   logout(): void {
     this.currentUser.set(null);
     this.error.set(null);
+    this.storage.clearUser();
   }
 
   /**
@@ -77,7 +90,7 @@ export class AuthLoginFacade {
     if (!user) {
       return null;
     }
-    
+
     return user.farmId || user.id || null;
   }
 
@@ -86,5 +99,23 @@ export class AuthLoginFacade {
    */
   clearError(): void {
     this.error.set(null);
+  }
+
+  /**
+   * Restaura sessão do usuário a partir do localStorage
+   */
+  private restoreSession(): void {
+    const savedUser = this.storage.getUser();
+    if (savedUser) {
+      this.currentUser.set(savedUser);
+    }
+  }
+
+  /**
+   * Define a sessão do usuário (memória + localStorage)
+   */
+  private setUserSession(user: FarmUser): void {
+    this.currentUser.set(user);
+    this.storage.saveUser(user);
   }
 }
