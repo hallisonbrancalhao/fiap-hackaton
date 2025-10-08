@@ -10,6 +10,7 @@ import { SelectModule } from 'primeng/select';
 import { CardComponent, LoadingComponent } from '@fiap-hackaton/shared-ui';
 import { Product, PRODUCT_CATEGORY, PRODUCT_UNIT } from '@fiap-hackaton/dashboard-domain';
 import { ProductFacade } from '@fiap-hackaton/dashboard-data-access';
+import { AuthLoginFacade } from '@fiap-hackaton/auth-data-access';
 
 @Component({
   selector: 'lib-product-form',
@@ -151,6 +152,7 @@ export class ProductFormComponent implements OnInit {
   ];
 
   private productFacade = inject(ProductFacade);
+  private authFacade = inject(AuthLoginFacade);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
@@ -183,8 +185,15 @@ export class ProductFormComponent implements OnInit {
     this.isSaving.set(true);
     const formValue = this.productForm.value;
 
-    // TODO: Get farmId from auth service
-    const farmId = 'fiap-farms-3e501';
+    // Busca o farmId do usuário autenticado
+    const currentUser = this.authFacade.currentUser();
+    
+    if (!currentUser?.id) {
+      this.isSaving.set(false);
+      return;
+    }
+
+    const farmId = currentUser.id;
 
     const productData: Omit<Product, 'id'> = {
       ...formValue,

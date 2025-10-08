@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BaseRepository } from './base.repository';
+import { BaseRepository } from '@fiap-hackaton/shared-data-access';
 import { ProductAnalytics } from '@fiap-hackaton/dashboard-domain';
 import { Observable } from 'rxjs';
 import { where, orderBy, limit } from '@angular/fire/firestore';
@@ -9,6 +9,8 @@ import { where, orderBy, limit } from '@angular/fire/firestore';
 })
 export class ProductAnalyticsRepository extends BaseRepository<ProductAnalytics> {
   protected collectionName = 'productAnalytics';
+
+
 
   getTopProfitableProducts(userId: string, limitCount = 10): Observable<ProductAnalytics[]> {
     return this.getAll([

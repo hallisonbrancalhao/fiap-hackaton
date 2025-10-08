@@ -24,8 +24,7 @@ export class AuthRegisterFacade {
   private repository = inject(FarmUserRepository);
 
   /**
-   * Registra novo usuário
-   * TODO: Integrar com Firebase Authentication
+   * Registra novo usuário usando Firebase
    */
   register(data: RegisterData): Observable<string> {
     this.isLoading.set(true);

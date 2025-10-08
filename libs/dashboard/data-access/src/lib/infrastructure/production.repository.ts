@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BaseRepository } from './base.repository';
+import { BaseRepository } from '@fiap-hackaton/shared-data-access';
 import { Production, PRODUCTION_STATUS } from '@fiap-hackaton/dashboard-domain';
 import { Observable } from 'rxjs';
 import { where, orderBy, Timestamp } from '@angular/fire/firestore';
@@ -9,6 +9,8 @@ import { where, orderBy, Timestamp } from '@angular/fire/firestore';
 })
 export class ProductionRepository extends BaseRepository<Production> {
   protected collectionName = 'productions';
+
+
 
   getByStatus(userId: string, status: PRODUCTION_STATUS): Observable<Production[]> {
     return this.getAll([

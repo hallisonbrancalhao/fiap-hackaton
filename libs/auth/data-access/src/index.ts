@@ -1,5 +1,4 @@
 // Infrastructure - Repositories
-export * from './lib/infrastructure/base.repository';
 export * from './lib/infrastructure/farm-user.repository';
 
 // Application - Facades

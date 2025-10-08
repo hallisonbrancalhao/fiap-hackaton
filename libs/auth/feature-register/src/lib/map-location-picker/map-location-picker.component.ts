@@ -21,18 +21,18 @@ interface LocationCoordinates {
   imports: [CommonModule, ButtonModule],
   template: `
     <div class="mb-4">
-      <p class="text-surface-600 dark:text-surface-400">
+      <p class="text-surface-600">
         Clique no mapa para selecionar a localização exata da sua fazenda
       </p>
       @if (selectedLocation(); as location) {
-        <div class="mt-2 p-3 bg-primary-50 dark:bg-primary-900 rounded-lg">
-          <p class="text-sm font-medium text-primary-900 dark:text-primary-100">
+        <div class="mt-2 p-3 bg-primary-50 rounded-lg">
+          <p class="text-sm font-medium text-primary-900">
             Localização selecionada:
           </p>
-          <p class="text-sm text-primary-700 dark:text-primary-300">
+          <p class="text-sm text-primary-700">
             Latitude: {{ location.latitude.toFixed(6) }}°
           </p>
-          <p class="text-sm text-primary-700 dark:text-primary-300">
+          <p class="text-sm text-primary-700">
             Longitude: {{ location.longitude.toFixed(6) }}°
           </p>
         </div>

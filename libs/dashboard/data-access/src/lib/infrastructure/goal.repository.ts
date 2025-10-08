@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BaseRepository } from './base.repository';
+import { BaseRepository } from '@fiap-hackaton/shared-data-access';
 import { Goal, GOAL_TYPE } from '@fiap-hackaton/dashboard-domain';
 import { Observable } from 'rxjs';
 import { where, orderBy, Timestamp } from '@angular/fire/firestore';
@@ -9,6 +9,8 @@ import { where, orderBy, Timestamp } from '@angular/fire/firestore';
 })
 export class GoalRepository extends BaseRepository<Goal> {
   protected collectionName = 'goals';
+
+
 
   getByType(userId: string, type: GOAL_TYPE): Observable<Goal[]> {
     return this.getAll([

@@ -1,11 +1,11 @@
-<div class="min-h-screen flex items-center justify-center bg-surface-50 dark:bg-surface-900 px-4">
+<div class="min-h-screen flex items-center justify-center bg-surface-50 px-4">
   <div class="w-full max-w-md">
     <!-- Logo/Header -->
     <div class="text-center mb-8">
       <div class="flex justify-center mb-4">
         <img src="logo.svg" alt="FIAP FARM" class="h-20" />
       </div>
-      <p class="text-surface-600 dark:text-surface-400">
+      <p class="text-surface-600">
         Gerencie sua fazenda com facilidade
       </p>
     </div>
@@ -24,7 +24,7 @@
 
         <!-- Email Field -->
         <div class="mb-4">
-          <label for="email" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+          <label for="email" class="block text-sm font-medium text-surface-700 mb-2">
             E-mail
           </label>
           <input
@@ -47,7 +47,7 @@
 
         <!-- Password Field -->
         <div class="mb-6">
-          <label for="password" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+          <label for="password" class="block text-sm font-medium text-surface-700 mb-2">
             Senha
           </label>
           <p-password
@@ -82,19 +82,19 @@
 
         <!-- Divider -->
         <div class="my-6 flex items-center">
-          <div class="flex-1 border-t border-surface-300 dark:border-surface-600"></div>
-          <span class="px-4 text-sm text-surface-500 dark:text-surface-400">ou</span>
-          <div class="flex-1 border-t border-surface-300 dark:border-surface-600"></div>
+          <div class="flex-1 border-t border-surface-300"></div>
+          <span class="px-4 text-sm text-surface-500">ou</span>
+          <div class="flex-1 border-t border-surface-300"></div>
         </div>
 
         <!-- Register Link -->
         <div class="text-center">
-          <p class="text-sm text-surface-600 dark:text-surface-400">
+          <p class="text-sm text-surface-600">
             Não tem uma conta?
             <button
               type="button"
               (click)="onRegisterClick()"
-              class="text-primary-600 dark:text-primary-400 hover:underline font-medium ml-1"
+              class="text-primary-600 hover:underline font-medium ml-1"
               data-testid="register-link"
             >
               Cadastre-se

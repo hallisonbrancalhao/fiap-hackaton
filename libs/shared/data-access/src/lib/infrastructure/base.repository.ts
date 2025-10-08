@@ -1,4 +1,3 @@
-import { inject } from '@angular/core';
 import {
   Firestore,
   collection,
@@ -6,8 +5,6 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
-  getDoc,
-  getDocs,
   query,
   where,
   orderBy,
@@ -17,62 +14,75 @@ import {
   Timestamp,
   CollectionReference,
   DocumentReference,
+  collectionData,
+  docData,
 } from '@angular/fire/firestore';
-import { Observable, from, map } from 'rxjs';
+import { Observable, from, map, defer } from 'rxjs';
+import { inject, Injectable } from '@angular/core';
 
+@Injectable()
 export abstract class BaseRepository<T extends DocumentData> {
-  protected firestore = inject(Firestore);
+  protected readonly firestore = inject(Firestore);
   protected abstract collectionName: string;
 
   create(data: Omit<T, 'id'>): Observable<string> {
-    const timestamp = Timestamp.now();
-    const docData = {
-      ...data,
-      createdAt: timestamp,
-      updatedAt: timestamp,
-    };
+    return defer(() => {
+      const timestamp = Timestamp.now();
+      const docDataObj = {
+        ...data,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
 
-    return from(addDoc(this.getCollectionRef(), docData)).pipe(
-      map((docRef) => docRef.id)
-    );
+      return from(addDoc(this.getCollectionRef(), docDataObj)).pipe(
+        map((docRef) => docRef.id)
+      );
+    });
   }
 
   update(id: string, data: Partial<T>): Observable<void> {
-    const docRef = this.getDocRef(id);
-    const updateData = {
-      ...data,
-      updatedAt: Timestamp.now(),
-    };
+    return defer(() => {
+      const docRef = this.getDocRef(id);
+      const updateData = {
+        ...data,
+        updatedAt: Timestamp.now(),
+      };
 
-    return from(updateDoc(docRef, updateData));
+      return from(updateDoc(docRef, updateData));
+    });
   }
 
   delete(id: string): Observable<void> {
-    const docRef = this.getDocRef(id);
-    return from(deleteDoc(docRef));
+    return defer(() => {
+      const docRef = this.getDocRef(id);
+      return from(deleteDoc(docRef));
+    });
   }
 
   getById(id: string): Observable<T | null> {
-    const docRef = this.getDocRef(id);
-    return from(getDoc(docRef)).pipe(
-      map((docSnap) => {
-        if (docSnap.exists()) {
-          return { id: docSnap.id, ...docSnap.data() } as unknown as T;
-        }
-        return null;
-      })
-    );
+    return defer(() => {
+      const docRef = this.getDocRef(id);
+      return docData(docRef, { idField: 'id' }).pipe(
+        map(data => data ? data as T : null)
+      );
+    });
   }
 
   getAll(constraints: QueryConstraint[] = []): Observable<T[]> {
-    const collectionRef = this.getCollectionRef();
-    const q = query(collectionRef, ...constraints);
-
-    return from(getDocs(q)).pipe(map((querySnapshot) => querySnapshot.docs.map((docSnapshot) => ({ id: docSnapshot.id, ...docSnapshot.data() } as unknown as T))));
+    return defer(() => {
+      const collectionRef = this.getCollectionRef();
+      const q = query(collectionRef, ...constraints);
+      return collectionData(q, { idField: 'id' }) as Observable<T[]>;
+    });
   }
 
   getByUserId(userId: string, constraints: QueryConstraint[] = []): Observable<T[]> {
     const allConstraints = [where('userId', '==', userId), ...constraints];
+    return this.getAll(allConstraints);
+  }
+
+  getByFarmId(farmId: string, constraints: QueryConstraint[] = []): Observable<T[]> {
+    const allConstraints = [where('farmId', '==', farmId), ...constraints];
     return this.getAll(allConstraints);
   }
 

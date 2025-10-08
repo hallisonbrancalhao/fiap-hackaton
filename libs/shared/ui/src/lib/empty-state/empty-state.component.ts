@@ -8,15 +8,15 @@ import { ButtonModule } from 'primeng/button';
   template: `
     <div class="flex flex-col items-center justify-center py-12 px-4">
       @if (icon()) {
-        <i [class]="icon() + ' text-6xl text-surface-400 dark:text-surface-600 mb-4'"></i>
+        <i [class]="icon() + ' text-6xl text-surface-400 mb-4'"></i>
       }
 
-      <h3 class="text-xl font-semibold text-surface-700 dark:text-surface-300 mb-2">
+      <h3 class="text-xl font-semibold text-surface-700 mb-2">
         {{ title() }}
       </h3>
 
       @if (description()) {
-        <p class="text-surface-500 dark:text-surface-400 text-center max-w-md mb-6">
+        <p class="text-surface-500 text-center max-w-md mb-6">
           {{ description() }}
         </p>
       }

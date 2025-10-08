@@ -6,16 +6,16 @@ import { CommonModule } from '@angular/common';
   imports: [CommonModule],
   template: `
     <div
-      class="bg-surface-0 dark:bg-surface-900 rounded-lg shadow-md p-6 border border-surface-200 dark:border-surface-700"
+      class="bg-surface-0 rounded-lg shadow-md p-6 border border-surface-200"
       [class]="customClass()"
     >
       @if (title()) {
         <div class="mb-4">
-          <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-0">
+          <h3 class="text-xl font-semibold text-surface-900">
             {{ title() }}
           </h3>
           @if (subtitle()) {
-            <p class="text-sm text-surface-500 dark:text-surface-400 mt-1">
+            <p class="text-sm text-surface-500 mt-1">
               {{ subtitle() }}
             </p>
           }
@@ -27,7 +27,7 @@ import { CommonModule } from '@angular/common';
       </div>
 
       @if (hasFooter()) {
-        <div class="mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+        <div class="mt-4 pt-4 border-t border-surface-200">
           <ng-content select="[footer]"></ng-content>
         </div>
       }

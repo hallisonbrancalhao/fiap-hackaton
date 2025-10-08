@@ -7,6 +7,7 @@ import { TagModule } from 'primeng/tag';
 import { CardComponent, LoadingComponent, EmptyStateComponent } from '@fiap-hackaton/shared-ui';
 import { Sale, SALE_STATUS } from '@fiap-hackaton/dashboard-domain';
 import { SaleFacade } from '@fiap-hackaton/dashboard-data-access';
+import { AuthLoginFacade } from '@fiap-hackaton/auth-data-access';
 import { SALE_STATUS_SEVERITIES } from './sale-list.constants';
 
 @Component({
@@ -129,21 +130,21 @@ import { SALE_STATUS_SEVERITIES } from './sale-list.constants';
 
 					<!-- Summary Card -->
 					<div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-						<div class="bg-primary-50 dark:bg-primary-900 p-4 rounded-lg">
-							<p class="text-sm text-primary-600 dark:text-primary-400 mb-1">Total de Vendas</p>
-							<p class="text-2xl font-bold text-primary-700 dark:text-primary-300">
+						<div class="bg-primary-50 p-4 rounded-lg">
+							<p class="text-sm text-primary-600 mb-1">Total de Vendas</p>
+							<p class="text-2xl font-bold text-primary-700">
 								{{ getTotalSales() | currency }}
 							</p>
 						</div>
-						<div class="bg-green-50 dark:bg-green-900 p-4 rounded-lg">
-							<p class="text-sm text-green-600 dark:text-green-400 mb-1">Concluídas</p>
-							<p class="text-2xl font-bold text-green-700 dark:text-green-300">
+						<div class="bg-green-50 p-4 rounded-lg">
+							<p class="text-sm text-green-600 mb-1">Concluídas</p>
+							<p class="text-2xl font-bold text-green-700">
 								{{ getCompletedTotal() | currency }}
 							</p>
 						</div>
-						<div class="bg-orange-50 dark:bg-orange-900 p-4 rounded-lg">
-							<p class="text-sm text-orange-600 dark:text-orange-400 mb-1">Pendentes</p>
-							<p class="text-2xl font-bold text-orange-700 dark:text-orange-300">
+						<div class="bg-orange-50 p-4 rounded-lg">
+							<p class="text-sm text-orange-600 mb-1">Pendentes</p>
+							<p class="text-2xl font-bold text-orange-700">
 								{{ getPendingTotal() | currency }}
 							</p>
 						</div>
@@ -162,6 +163,7 @@ export class SaleListComponent implements OnInit {
 	protected readonly SALE_STATUS = SALE_STATUS;
 
 	private saleFacade = inject(SaleFacade);
+	private authFacade = inject(AuthLoginFacade);
 	private router = inject(Router);
 
 	ngOnInit(): void {
@@ -239,8 +241,16 @@ export class SaleListComponent implements OnInit {
 
 	private loadSales(): void {
 		this.isLoading.set(true);
-		// TODO: Get farmId from auth service
-		const farmId = 'fiap-farms-3e501';
+		
+		// Busca o farmId do usuário autenticado
+		const currentUser = this.authFacade.currentUser();
+		
+		if (!currentUser?.id) {
+			this.isLoading.set(false);
+			return;
+		}
+
+		const farmId = currentUser.id;
 
 		this.saleFacade.getByFarmId(farmId).subscribe({
 			next: (sales) => {

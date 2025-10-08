@@ -5,6 +5,9 @@ import { Router } from '@angular/router';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { CardComponent } from '@fiap-hackaton/shared-ui';
+import { FarmUserFacade } from '@fiap-hackaton/auth-data-access';
+import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
 @Component({
   selector: 'fiap-farms-create',
@@ -14,15 +17,18 @@ import { CardComponent } from '@fiap-hackaton/shared-ui';
     InputTextModule,
     ButtonModule,
     CardComponent,
+    ToastModule,
   ],
+  providers: [MessageService],
   template: `
+    <p-toast />
     <div class="p-6">
       <lib-card title="Criar Fazenda" subtitle="Adicione uma nova propriedade rural">
         <form [formGroup]="farmForm" (ngSubmit)="onSubmit()">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <!-- Nome -->
             <div class="mb-4 md:col-span-2">
-              <label for="name" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+              <label for="name" class="block text-sm font-medium text-surface-700 mb-2">
                 Nome da Fazenda *
               </label>
               <input
@@ -44,7 +50,7 @@ import { CardComponent } from '@fiap-hackaton/shared-ui';
 
             <!-- Cidade -->
             <div class="mb-4">
-              <label for="city" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+              <label for="city" class="block text-sm font-medium text-surface-700 mb-2">
                 Cidade *
               </label>
               <input
@@ -66,7 +72,7 @@ import { CardComponent } from '@fiap-hackaton/shared-ui';
 
             <!-- Estado -->
             <div class="mb-4">
-              <label for="state" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+              <label for="state" class="block text-sm font-medium text-surface-700 mb-2">
                 Estado *
               </label>
               <input
@@ -88,7 +94,7 @@ import { CardComponent } from '@fiap-hackaton/shared-ui';
 
             <!-- Área -->
             <div class="mb-4">
-              <label for="area" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+              <label for="area" class="block text-sm font-medium text-surface-700 mb-2">
                 Área (hectares)
               </label>
               <input
@@ -103,7 +109,7 @@ import { CardComponent } from '@fiap-hackaton/shared-ui';
 
             <!-- Endereço -->
             <div class="mb-4">
-              <label for="address" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+              <label for="address" class="block text-sm font-medium text-surface-700 mb-2">
                 Endereço
               </label>
               <input
@@ -130,7 +136,8 @@ import { CardComponent } from '@fiap-hackaton/shared-ui';
               type="submit"
               label="Criar Fazenda"
               icon="pi pi-check"
-              [disabled]="farmForm.invalid"
+              [disabled]="farmForm.invalid || isLoading()"
+              [loading]="isLoading()"
             />
           </div>
         </form>
@@ -142,9 +149,12 @@ import { CardComponent } from '@fiap-hackaton/shared-ui';
 export class CreateComponent {
   protected farmForm: FormGroup;
   protected submitted = signal(false);
+  protected isLoading = signal(false);
 
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private farmUserFacade = inject(FarmUserFacade);
+  private messageService = inject(MessageService);
 
   constructor() {
     this.farmForm = this.createForm();
@@ -158,9 +168,43 @@ export class CreateComponent {
       return;
     }
 
-    // TODO: Chamar serviço para salvar a fazenda
-    // Redirecionar para a lista
-    this.router.navigate(['/dashboard/farms']);
+    this.isLoading.set(true);
+    const formValue = this.farmForm.value;
+
+    // Criar usuário de fazenda com os dados do formulário
+    const farmUser = {
+      name: 'Admin', // Nome padrão, poderia vir de um campo ou do usuário logado
+      email: 'admin@farm.com', // Email padrão, poderia vir do usuário logado
+      farmName: formValue.name,
+      location: {
+        latitude: 0, // Valores padrão, seria ideal ter um mapa para selecionar
+        longitude: 0,
+        address: `${formValue.address || ''}, ${formValue.city}, ${formValue.state}`.trim(),
+      },
+      phone: '', // Opcional
+    };
+
+    this.farmUserFacade.create(farmUser).subscribe({
+      next: () => {
+        this.isLoading.set(false);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Sucesso',
+          detail: 'Fazenda criada com sucesso!',
+        });
+        setTimeout(() => {
+          this.router.navigate(['/dashboard/farms']);
+        }, 1500);
+      },
+      error: (error) => {
+        this.isLoading.set(false);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erro',
+          detail: error.message || 'Erro ao criar fazenda',
+        });
+      },
+    });
   }
 
   protected onCancel(): void {

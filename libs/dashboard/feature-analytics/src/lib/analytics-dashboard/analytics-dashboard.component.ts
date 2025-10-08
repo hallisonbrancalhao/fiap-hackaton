@@ -4,6 +4,7 @@ import { TableModule } from 'primeng/table';
 import { CardComponent, LoadingComponent, EmptyStateComponent } from '@fiap-hackaton/shared-ui';
 import { ProductAnalytics } from '@fiap-hackaton/dashboard-domain';
 import { ProductAnalyticsFacade } from '@fiap-hackaton/dashboard-data-access';
+import { AuthLoginFacade } from '@fiap-hackaton/auth-data-access';
 
 @Component({
   selector: 'lib-analytics-dashboard',
@@ -18,10 +19,10 @@ import { ProductAnalyticsFacade } from '@fiap-hackaton/dashboard-data-access';
   template: `
     <div class="p-6">
       <div class="mb-6">
-        <h1 class="text-3xl font-bold text-surface-900 dark:text-surface-0">
+        <h1 class="text-3xl font-bold text-surface-900">
           Análise & Relatórios
         </h1>
-        <p class="text-surface-600 dark:text-surface-400 mt-2">
+        <p class="text-surface-600 mt-2">
           Acompanhe o desempenho e insights da sua fazenda
         </p>
       </div>
@@ -31,51 +32,51 @@ import { ProductAnalyticsFacade } from '@fiap-hackaton/dashboard-data-access';
       } @else {
         <!-- Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div class="bg-primary-50 dark:bg-primary-900 p-6 rounded-lg border border-primary-200 dark:border-primary-700">
+          <div class="bg-primary-50 p-6 rounded-lg border border-primary-200">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-primary-600 dark:text-primary-400 mb-1">Receita Total</p>
-                <p class="text-2xl font-bold text-primary-700 dark:text-primary-300">
+                <p class="text-sm text-primary-600 mb-1">Receita Total</p>
+                <p class="text-2xl font-bold text-primary-700">
                   {{ getTotalRevenue() | currency }}
                 </p>
               </div>
-              <i class="pi pi-dollar text-3xl text-primary-500 dark:text-primary-400"></i>
+              <i class="pi pi-dollar text-3xl text-primary-500"></i>
             </div>
           </div>
 
-          <div class="bg-green-50 dark:bg-green-900 p-6 rounded-lg border border-green-200 dark:border-green-700">
+          <div class="bg-green-50 p-6 rounded-lg border border-green-200">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-green-600 dark:text-green-400 mb-1">Lucro Total</p>
-                <p class="text-2xl font-bold text-green-700 dark:text-green-300">
+                <p class="text-sm text-green-600 mb-1">Lucro Total</p>
+                <p class="text-2xl font-bold text-green-700">
                   {{ getTotalProfit() | currency }}
                 </p>
               </div>
-              <i class="pi pi-chart-line text-3xl text-green-500 dark:text-green-400"></i>
+              <i class="pi pi-chart-line text-3xl text-green-500"></i>
             </div>
           </div>
 
-          <div class="bg-blue-50 dark:bg-blue-900 p-6 rounded-lg border border-blue-200 dark:border-blue-700">
+          <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-blue-600 dark:text-blue-400 mb-1">Margem de Lucro Média</p>
-                <p class="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                <p class="text-sm text-blue-600 mb-1">Margem de Lucro Média</p>
+                <p class="text-2xl font-bold text-blue-700">
                   {{ getAvgProfitMargin() }}%
                 </p>
               </div>
-              <i class="pi pi-percentage text-3xl text-blue-500 dark:text-blue-400"></i>
+              <i class="pi pi-percentage text-3xl text-blue-500"></i>
             </div>
           </div>
 
-          <div class="bg-orange-50 dark:bg-orange-900 p-6 rounded-lg border border-orange-200 dark:border-orange-700">
+          <div class="bg-orange-50 p-6 rounded-lg border border-orange-200">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-orange-600 dark:text-orange-400 mb-1">Produtos Analisados</p>
-                <p class="text-2xl font-bold text-orange-700 dark:text-orange-300">
+                <p class="text-sm text-orange-600 mb-1">Produtos Analisados</p>
+                <p class="text-2xl font-bold text-orange-700">
                   {{ analytics().length }}
                 </p>
               </div>
-              <i class="pi pi-box text-3xl text-orange-500 dark:text-orange-400"></i>
+              <i class="pi pi-box text-3xl text-orange-500"></i>
             </div>
           </div>
         </div>
@@ -112,7 +113,7 @@ import { ProductAnalyticsFacade } from '@fiap-hackaton/dashboard-data-access';
                   <td>{{ item.totalRevenue | currency }}</td>
                   <td>{{ item.totalCost | currency }}</td>
                   <td>
-                    <span class="font-semibold text-green-600 dark:text-green-400">
+                    <span class="font-semibold text-green-600">
                       {{ item.profit | currency }}
                     </span>
                   </td>
@@ -146,6 +147,7 @@ export class AnalyticsDashboardComponent implements OnInit {
   protected isLoading = signal(false);
 
   private analyticsFacade = inject(ProductAnalyticsFacade);
+  private authFacade = inject(AuthLoginFacade);
 
   ngOnInit(): void {
     this.loadAnalytics();
@@ -168,8 +170,16 @@ export class AnalyticsDashboardComponent implements OnInit {
 
   private loadAnalytics(): void {
     this.isLoading.set(true);
-    // TODO: Get userId from auth service
-    const userId = 'test-user-id';
+    
+    // Busca o userId do usuário autenticado
+    const currentUser = this.authFacade.currentUser();
+    
+    if (!currentUser?.id) {
+      this.isLoading.set(false);
+      return;
+    }
+
+    const userId = currentUser.id;
 
     this.analyticsFacade.getTopProfitableProducts(userId, 10).subscribe({
       next: (analytics) => {

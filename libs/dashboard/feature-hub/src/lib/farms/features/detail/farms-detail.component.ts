@@ -3,16 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { CardComponent } from '@fiap-hackaton/shared-ui';
-
-interface FarmDetail {
-  id: string;
-  name: string;
-  city: string;
-  state: string;
-  area?: number;
-  address?: string;
-  createdAt?: Date;
-}
+import { FarmUserFacade } from '@fiap-hackaton/auth-data-access';
+import { FarmUser } from '@fiap-hackaton/auth-domain';
 
 @Component({
   selector: 'fiap-farms-detail',
@@ -38,43 +30,50 @@ interface FarmDetail {
 
         @if (farm()) {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-surface-50 dark:bg-surface-700 p-4 rounded-lg">
-              <p class="text-sm text-surface-600 dark:text-surface-400 mb-1">Nome</p>
-              <p class="text-lg font-semibold text-surface-900 dark:text-surface-0">
+            <div class="bg-surface-50 p-4 rounded-lg">
+              <p class="text-sm text-surface-600 mb-1">Nome da Fazenda</p>
+              <p class="text-lg font-semibold text-surface-900">
+                {{ farm()?.farmName }}
+              </p>
+            </div>
+
+            <div class="bg-surface-50 p-4 rounded-lg">
+              <p class="text-sm text-surface-600 mb-1">Proprietário</p>
+              <p class="text-lg font-semibold text-surface-900">
                 {{ farm()?.name }}
               </p>
             </div>
 
-            <div class="bg-surface-50 dark:bg-surface-700 p-4 rounded-lg">
-              <p class="text-sm text-surface-600 dark:text-surface-400 mb-1">Localização</p>
-              <p class="text-lg font-semibold text-surface-900 dark:text-surface-0">
-                {{ farm()?.city }}, {{ farm()?.state }}
+            <div class="bg-surface-50 p-4 rounded-lg">
+              <p class="text-sm text-surface-600 mb-1">Email</p>
+              <p class="text-lg font-semibold text-surface-900">
+                {{ farm()?.email }}
               </p>
             </div>
 
-            <div class="bg-surface-50 dark:bg-surface-700 p-4 rounded-lg">
-              <p class="text-sm text-surface-600 dark:text-surface-400 mb-1">Área</p>
-              <p class="text-lg font-semibold text-surface-900 dark:text-surface-0">
-                {{ farm()?.area || '-' }} hectares
+            <div class="bg-surface-50 p-4 rounded-lg">
+              <p class="text-sm text-surface-600 mb-1">Telefone</p>
+              <p class="text-lg font-semibold text-surface-900">
+                {{ farm()?.phone || 'Não informado' }}
               </p>
             </div>
 
-            <div class="bg-surface-50 dark:bg-surface-700 p-4 rounded-lg">
-              <p class="text-sm text-surface-600 dark:text-surface-400 mb-1">Endereço</p>
-              <p class="text-lg font-semibold text-surface-900 dark:text-surface-0">
-                {{ farm()?.address || 'Não informado' }}
+            <div class="bg-surface-50 p-4 rounded-lg md:col-span-2">
+              <p class="text-sm text-surface-600 mb-1">Endereço</p>
+              <p class="text-lg font-semibold text-surface-900">
+                {{ farm()?.location?.address || 'Não informado' }}
               </p>
             </div>
           </div>
 
-          <div class="mt-6 bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg p-4">
+          <div class="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div class="flex items-start">
-              <i class="pi pi-info-circle text-blue-600 dark:text-blue-400 mr-3 mt-1"></i>
+              <i class="pi pi-info-circle text-blue-600 mr-3 mt-1"></i>
               <div>
-                <p class="text-sm font-medium text-blue-900 dark:text-blue-100">
+                <p class="text-sm font-medium text-blue-900">
                   Informação
                 </p>
-                <p class="text-sm text-blue-700 dark:text-blue-200 mt-1">
+                <p class="text-sm text-blue-700 mt-1">
                   Esta fazenda foi cadastrada no sistema. Você pode visualizar estatísticas
                   detalhadas clicando no botão "Ver Estatísticas" acima.
                 </p>
@@ -84,7 +83,7 @@ interface FarmDetail {
         } @else {
           <div class="text-center py-8">
             <i class="pi pi-spin pi-spinner text-4xl text-primary-500"></i>
-            <p class="mt-4 text-surface-600 dark:text-surface-400">
+            <p class="mt-4 text-surface-600">
               Carregando detalhes da fazenda...
             </p>
           </div>
@@ -95,11 +94,12 @@ interface FarmDetail {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FarmsDetailComponent implements OnInit {
-  protected farm = signal<FarmDetail | null>(null);
+  protected farm = signal<FarmUser | null>(null);
   private farmId = signal<string>('');
 
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private farmUserFacade = inject(FarmUserFacade);
 
   ngOnInit(): void {
     this.route.params.subscribe(params => {
@@ -117,18 +117,15 @@ export class FarmsDetailComponent implements OnInit {
   }
 
   private loadFarmDetails(): void {
-    // TODO: Chamar serviço para carregar detalhes da fazenda
-    // Simulando dados mockados
-    setTimeout(() => {
-      this.farm.set({
-        id: this.farmId(),
-        name: 'Fazenda Exemplo',
-        city: 'São Paulo',
-        state: 'SP',
-        area: 150,
-        address: 'Estrada Rural, km 25',
-        createdAt: new Date(),
-      });
-    }, 500);
+    this.farmUserFacade.getById(this.farmId()).subscribe({
+      next: (farm) => {
+        this.farm.set(farm);
+      },
+      error: (error) => {
+        // eslint-disable-next-line no-console
+        console.error('Erro ao carregar detalhes da fazenda:', error);
+        this.router.navigate(['/dashboard/farms']);
+      },
+    });
   }
 }

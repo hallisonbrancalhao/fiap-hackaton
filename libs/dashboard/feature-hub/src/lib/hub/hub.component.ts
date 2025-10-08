@@ -1,112 +1,107 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, ChangeDetectionStrategy, inject, signal, AfterViewInit, DestroyRef } from '@angular/core';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import { Router } from '@angular/router';
+import { ButtonModule } from 'primeng/button';
+import { CardComponent, LoadingComponent } from '@fiap-hackaton/shared-ui';
+import { HubFacade, DashboardStats } from '@fiap-hackaton/dashboard-data-access';
+import { AuthLoginFacade } from '@fiap-hackaton/auth-data-access';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+
+interface DashboardCard {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  route: string;
+  gradient: string;
+  iconColor: string;
+}
 
 @Component({
   selector: 'fiap-farms-hub',
-  imports: [CommonModule],
-  template: `
-    <div class="p-6">
-      <div class="mb-6">
-        <h1 class="text-3xl font-bold text-surface-900 dark:text-surface-0">
-          Dashboard
-        </h1>
-        <p class="text-surface-600 dark:text-surface-400 mt-2">
-          Bem-vindo ao FIAP FARM - Gerencie sua fazenda de forma eficiente
-        </p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Produtos Card -->
-        <div
-          (click)="navigate('/dashboard/products')"
-          (keyup.enter)="navigate('/dashboard/products')"
-          tabindex="0"
-          role="button"
-          class="cursor-pointer group bg-white dark:bg-surface-800 rounded-xl border-2 border-surface-200 dark:border-surface-700 hover:border-emerald-500 hover:shadow-xl transition-all duration-300 p-8"
-        >
-          <div class="flex flex-col items-center text-center">
-            <div class="mb-6 p-5 bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900 dark:to-emerald-800 rounded-2xl group-hover:scale-110 transition-transform duration-300">
-              <i class="pi pi-box text-5xl text-emerald-600 dark:text-emerald-400"></i>
-            </div>
-            <h3 class="text-2xl font-bold text-surface-900 dark:text-surface-0 mb-3">
-              Produtos
-            </h3>
-            <p class="text-surface-600 dark:text-surface-400">
-              Gerencie o catálogo de produtos da sua fazenda
-            </p>
-          </div>
-        </div>
-
-        <!-- Vendas Card -->
-        <div
-          (click)="navigate('/dashboard/sales')"
-          (keyup.enter)="navigate('/dashboard/sales')"
-          tabindex="0"
-          role="button"
-          class="cursor-pointer group bg-white dark:bg-surface-800 rounded-xl border-2 border-surface-200 dark:border-surface-700 hover:border-blue-500 hover:shadow-xl transition-all duration-300 p-8"
-        >
-          <div class="flex flex-col items-center text-center">
-            <div class="mb-6 p-5 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900 dark:to-blue-800 rounded-2xl group-hover:scale-110 transition-transform duration-300">
-              <i class="pi pi-shopping-cart text-5xl text-blue-600 dark:text-blue-400"></i>
-            </div>
-            <h3 class="text-2xl font-bold text-surface-900 dark:text-surface-0 mb-3">
-              Vendas
-            </h3>
-            <p class="text-surface-600 dark:text-surface-400">
-              Acompanhe suas vendas e receitas
-            </p>
-          </div>
-        </div>
-
-        <!-- Analytics Card -->
-        <div
-          (click)="navigate('/dashboard/analytics')"
-          (keyup.enter)="navigate('/dashboard/analytics')"
-          tabindex="0"
-          role="button"
-          class="cursor-pointer group bg-white dark:bg-surface-800 rounded-xl border-2 border-surface-200 dark:border-surface-700 hover:border-purple-500 hover:shadow-xl transition-all duration-300 p-8"
-        >
-          <div class="flex flex-col items-center text-center">
-            <div class="mb-6 p-5 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900 dark:to-purple-800 rounded-2xl group-hover:scale-110 transition-transform duration-300">
-              <i class="pi pi-chart-line text-5xl text-purple-600 dark:text-purple-400"></i>
-            </div>
-            <h3 class="text-2xl font-bold text-surface-900 dark:text-surface-0 mb-3">
-              Análises
-            </h3>
-            <p class="text-surface-600 dark:text-surface-400">
-              Visualize relatórios e estatísticas
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Quick Stats -->
-      <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg p-6 text-white">
-          <p class="text-sm opacity-90 mb-1">Produtos Cadastrados</p>
-          <p class="text-3xl font-bold">-</p>
-          <p class="text-sm opacity-75 mt-2">Acesse Produtos para mais detalhes</p>
-        </div>
-        <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-lg p-6 text-white">
-          <p class="text-sm opacity-90 mb-1">Vendas do Mês</p>
-          <p class="text-3xl font-bold">-</p>
-          <p class="text-sm opacity-75 mt-2">Acesse Vendas para mais detalhes</p>
-        </div>
-        <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-6 text-white">
-          <p class="text-sm opacity-90 mb-1">Receita Total</p>
-          <p class="text-3xl font-bold">-</p>
-          <p class="text-sm opacity-75 mt-2">Acesse Análises para mais detalhes</p>
-        </div>
-      </div>
-    </div>
-  `,
+  imports: [CommonModule, CardComponent, LoadingComponent, CurrencyPipe, ButtonModule],
+  templateUrl: './hub.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class HubComponent {
-  private router = inject(Router);
+export class HubComponent implements AfterViewInit {
+  protected readonly dashboardCards: DashboardCard[] = [
+    {
+      id: 'products',
+      title: 'Produtos',
+      description: 'Gerencie o catálogo completo de produtos da sua fazenda',
+      icon: 'pi pi-box',
+      route: '/dashboard/products',
+      gradient: 'bg-gradient-to-br from-emerald-50 to-emerald-100',
+      iconColor: 'text-emerald-600',
+    },
+    {
+      id: 'sales',
+      title: 'Vendas',
+      description: 'Registre e acompanhe todas as suas vendas e receitas',
+      icon: 'pi pi-shopping-cart',
+      route: '/dashboard/sales',
+      gradient: 'bg-gradient-to-br from-blue-50 to-blue-100',
+      iconColor: 'text-blue-600',
+    },
+    {
+      id: 'analytics',
+      title: 'Análises',
+      description: 'Visualize relatórios detalhados e estatísticas avançadas',
+      icon: 'pi pi-chart-line',
+      route: '/dashboard/analytics',
+      gradient: 'bg-gradient-to-br from-purple-50 to-purple-100',
+      iconColor: 'text-purple-600',
+    },
+  ];
 
-  protected navigate(path: string): void {
+  protected stats = signal<DashboardStats>({
+    totalProducts: 0,
+    totalSales: 0,
+    monthlyRevenue: 0,
+    recentSalesCount: 0,
+  });
+  protected isLoadingStats = signal(false);
+
+  private readonly hubFacade = inject(HubFacade);
+  private readonly authFacade = inject(AuthLoginFacade);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
+
+  ngAfterViewInit(): void {
+    // Usar setTimeout para garantir que estamos no contexto de injeção correto
+    setTimeout(() => this.loadDashboardStats(), 0);
+  }
+
+  protected navigateTo(path: string): void {
     this.router.navigate([path]);
+  }
+
+  protected refreshStats(): void {
+    this.loadDashboardStats();
+  }
+
+  private loadDashboardStats(): void {
+    this.isLoadingStats.set(true);
+
+    const currentUser = this.authFacade.currentUser();
+
+    if (!currentUser?.id) {
+      this.isLoadingStats.set(false);
+      return;
+    }
+
+    const farmId = currentUser.id;
+
+    this.hubFacade.getDashboardStats(farmId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (stats) => {
+          this.stats.set(stats);
+          this.isLoadingStats.set(false);
+        },
+        error: () => {
+          this.isLoadingStats.set(false);
+        },
+      });
   }
 }

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BaseRepository } from './base.repository';
+import { BaseRepository } from '@fiap-hackaton/shared-data-access';
 import { Product, PRODUCT_CATEGORY } from '@fiap-hackaton/dashboard-domain';
 import { Observable } from 'rxjs';
 import { where } from '@angular/fire/firestore';

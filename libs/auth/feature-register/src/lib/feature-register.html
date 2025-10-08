@@ -1,11 +1,11 @@
-<div class="min-h-screen flex items-center justify-center bg-surface-50 dark:bg-surface-900 px-4 py-8">
+<div class="min-h-screen flex items-center justify-center bg-surface-50 px-4 py-8">
   <div class="w-full max-w-2xl">
     <!-- Logo/Header -->
     <div class="text-center mb-8">
       <div class="flex justify-center mb-4">
         <img src="logo.svg" alt="FIAP FARM" class="h-20" />
       </div>
-      <p class="text-surface-600 dark:text-surface-400">
+      <p class="text-surface-600">
         Crie sua conta para começar a gerenciar sua fazenda
       </p>
     </div>
@@ -34,7 +34,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <!-- Name Field -->
           <div class="mb-4">
-            <label for="name" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+            <label for="name" class="block text-sm font-medium text-surface-700 mb-2">
               Nome Completo *
             </label>
             <input
@@ -57,7 +57,7 @@
 
           <!-- Email Field -->
           <div class="mb-4">
-            <label for="email" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+            <label for="email" class="block text-sm font-medium text-surface-700 mb-2">
               E-mail *
             </label>
             <input
@@ -80,7 +80,7 @@
 
           <!-- Password Field -->
           <div class="mb-4">
-            <label for="password" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+            <label for="password" class="block text-sm font-medium text-surface-700 mb-2">
               Senha *
             </label>
             <p-password
@@ -103,7 +103,7 @@
 
           <!-- Confirm Password Field -->
           <div class="mb-4">
-            <label for="confirmPassword" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+            <label for="confirmPassword" class="block text-sm font-medium text-surface-700 mb-2">
               Confirmar Senha *
             </label>
             <p-password
@@ -127,7 +127,7 @@
 
           <!-- Farm Name Field -->
           <div class="mb-4">
-            <label for="farmName" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+            <label for="farmName" class="block text-sm font-medium text-surface-700 mb-2">
               Nome da Fazenda *
             </label>
             <input
@@ -150,7 +150,7 @@
 
           <!-- Phone Field -->
           <div class="mb-4">
-            <label for="phone" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+            <label for="phone" class="block text-sm font-medium text-surface-700 mb-2">
               Phone
             </label>
             <input
@@ -166,7 +166,7 @@
 
           <!-- Address Field -->
           <div class="mb-4 md:col-span-2">
-            <label for="address" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+            <label for="address" class="block text-sm font-medium text-surface-700 mb-2">
               Endereço da Fazenda *
             </label>
             <input
@@ -189,7 +189,7 @@
 
           <!-- Map Location Picker Button -->
           <div class="mb-4 md:col-span-2">
-            <div class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-2">
+            <div class="block text-sm font-medium text-surface-700 mb-2">
               Localização da Fazenda *
             </div>
             <p-button
@@ -203,7 +203,7 @@
               data-testid="map-picker-button"
             />
             @if (registerForm.get('latitude')?.value && registerForm.get('longitude')?.value) {
-              <div class="mt-2 p-2 bg-green-50 dark:bg-green-900 rounded text-sm text-green-700 dark:text-green-300">
+              <div class="mt-2 p-2 bg-green-50 rounded text-sm text-green-700">
                 <i class="pi pi-check-circle mr-2"></i>
                 Localização definida: {{ registerForm.get('latitude')?.value.toFixed(6) }}, {{ registerForm.get('longitude')?.value.toFixed(6) }}
               </div>
@@ -245,19 +245,19 @@
 
         <!-- Divider -->
         <div class="my-6 flex items-center">
-          <div class="flex-1 border-t border-surface-300 dark:border-surface-600"></div>
-          <span class="px-4 text-sm text-surface-500 dark:text-surface-400">ou</span>
-          <div class="flex-1 border-t border-surface-300 dark:border-surface-600"></div>
+          <div class="flex-1 border-t border-surface-300"></div>
+          <span class="px-4 text-sm text-surface-500">ou</span>
+          <div class="flex-1 border-t border-surface-300"></div>
         </div>
 
         <!-- Login Link -->
         <div class="text-center">
-          <p class="text-sm text-surface-600 dark:text-surface-400">
+          <p class="text-sm text-surface-600">
             Já tem uma conta?
             <button
               type="button"
               (click)="onLoginClick()"
-              class="text-primary-600 dark:text-primary-400 hover:underline font-medium ml-1"
+              class="text-primary-600 hover:underline font-medium ml-1"
               data-testid="login-link"
             >
               Entrar

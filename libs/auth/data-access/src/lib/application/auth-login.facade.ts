@@ -17,24 +17,18 @@ export interface LoginResponse {
   providedIn: 'root',
 })
 export class AuthLoginFacade {
-  // State signals
   isLoading = signal<boolean>(false);
   error = signal<string | null>(null);
   currentUser = signal<FarmUser | null>(null);
 
   private repository = inject(FarmUserRepository);
 
-  /**
-   * Simula login do usuário
-   * TODO: Integrar com Firebase Authentication
-   */
   login(credentials: LoginCredentials): Observable<LoginResponse> {
     this.isLoading.set(true);
     this.error.set(null);
 
-    // Simula validação por email
     return this.repository.getByEmail(credentials.email).pipe(
-      delay(1000), // Simula latência de rede
+      delay(1000),
       tap({
         next: (users) => {
           if (users.length === 0) {

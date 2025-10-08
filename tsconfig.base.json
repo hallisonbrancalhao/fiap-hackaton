@@ -27,6 +27,7 @@
 			"@fiap-hackaton/dashboard-feature-analytics": ["libs/dashboard/feature-analytics/src/index.ts"],
 			"@fiap-hackaton/dashboard-feature-products": ["libs/dashboard/feature-products/src/index.ts"],
 			"@fiap-hackaton/dashboard-feature-sales": ["libs/dashboard/feature-sales/src/index.ts"],
+			"@fiap-hackaton/shared-data-access": ["libs/shared/data-access/src/index.ts"],
 			"@fiap-hackaton/shared-environments": ["libs/shared/environments/src/index.ts"],
 			"@fiap-hackaton/shared-ui": ["libs/shared/ui/src/index.ts"],
 			"map/Routes": ["apps/map/src/app/remote-entry/entry.routes.ts"]

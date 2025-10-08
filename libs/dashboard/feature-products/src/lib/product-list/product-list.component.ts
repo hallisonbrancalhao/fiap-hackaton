@@ -7,6 +7,7 @@ import { TagModule } from 'primeng/tag';
 import { CardComponent, LoadingComponent, EmptyStateComponent } from '@fiap-hackaton/shared-ui';
 import { Product, PRODUCT_CATEGORY } from '@fiap-hackaton/dashboard-domain';
 import { ProductFacade } from '@fiap-hackaton/dashboard-data-access';
+import { AuthLoginFacade } from '@fiap-hackaton/auth-data-access';
 import { PRODUCT_CATEGORY_SEVERITIES } from './product-list.constants';
 
 @Component({
@@ -93,6 +94,7 @@ export class ProductListComponent implements OnInit {
   protected isLoading = signal(false);
 
   private productFacade = inject(ProductFacade);
+  private authFacade = inject(AuthLoginFacade);
   private router = inject(Router);
 
   ngOnInit(): void {
@@ -125,8 +127,15 @@ export class ProductListComponent implements OnInit {
 
   private loadProducts(): void {
     this.isLoading.set(true);
-    // TODO: Get farmId from auth service
-    const farmId = 'fiap-farms-3e501';
+
+    const currentUser = this.authFacade.currentUser();
+
+    if (!currentUser?.id) {
+      this.isLoading.set(false);
+      return;
+    }
+
+    const farmId = currentUser.id;
 
     this.productFacade.getByFarmId(farmId).subscribe({
       next: (products) => {

@@ -21,7 +21,7 @@ import { CommonModule } from '@angular/common';
       ></div>
 
       @if (message()) {
-        <p class="mt-4 text-surface-600 dark:text-surface-400 text-center">
+        <p class="mt-4 text-surface-600 text-center">
           {{ message() }}
         </p>
       }

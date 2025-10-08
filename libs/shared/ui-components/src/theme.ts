@@ -38,26 +38,6 @@ const panelTheme = definePreset(Aura, {
         focusColor: '{primary.800}'
       }
     },
-    dark: {
-      primary: {
-        color: '{primary.200}',
-        contrastColor: '#ffffff',
-        hoverColor: '{primary.300}',
-        activeColor: '{primary.400}'
-      },
-      secondary: {
-        color: '{secondary.200}',
-        contrastColor: '#ffffff',
-        hoverColor: '{secondary.300}',
-        activeColor: '{secondary.400}'
-      },
-      highlight: {
-        background: '{primary.100}',
-        focusBackground: '{primary.200}',
-        color: '{primary.900}',
-        focusColor: '{primary.950}'
-      }
-    }
   }
 });
 
