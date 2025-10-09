@@ -3,6 +3,7 @@ import {
   collection,
   doc,
   addDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
   query,
@@ -38,6 +39,23 @@ export abstract class BaseRepository<T extends DocumentData> {
       return from(addDoc(this.getCollectionRef(), docDataObj)).pipe(
         map((docRef) => docRef.id)
       );
+    });
+  }
+
+  /**
+   * Cria documento com ID customizado (útil para vincular com Firebase Auth UID)
+   */
+  createWithId(id: string, data: Omit<T, 'id'>): Observable<void> {
+    return defer(() => {
+      const timestamp = Timestamp.now();
+      const docDataObj = {
+        ...data,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+
+      const docRef = this.getDocRef(id);
+      return from(setDoc(docRef, docDataObj));
     });
   }
 

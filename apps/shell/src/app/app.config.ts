@@ -8,6 +8,7 @@ import { providePrimeNG } from 'primeng/config';
 import FarmTheme from '@fiap-farm/ui-components';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideShell } from '@fiap-hackaton/shell-dashboard';
+import { MessageService } from 'primeng/api';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -18,6 +19,7 @@ export const appConfig: ApplicationConfig = {
       theme: FarmTheme,
       ripple: true,
     }),
+    MessageService,
     ...provideShell(),
   ],
 };

@@ -1,14 +1,26 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, switchMap, forkJoin, of, map, catchError } from 'rxjs';
+import { Observable, switchMap, forkJoin, of, map, catchError, throwError } from 'rxjs';
 import { Sale, SALE_STATUS, SaleItem, BatchAllocation, PAYMENT_METHOD } from '@fiap-hackaton/dashboard-domain';
 import { SaleRepository } from '../infrastructure/sale.repository';
 import { ProductRepository } from '../infrastructure/product.repository';
-import { ProductAnalyticsRepository } from '../infrastructure/product-analytics.repository';
 import { GoalFacade } from './goal.facade';
 import { GOAL_TYPE } from '@fiap-hackaton/dashboard-domain';
 import { StockBatchFacade, AllocationStrategy } from './stock-batch.facade';
 import { BatchAnalyticsFacade } from './batch-analytics.facade';
 import { Timestamp } from '@angular/fire/firestore';
+import { ToastService } from '@fiap-hackaton/shared-ui';
+import { AuthGuardService } from '@fiap-hackaton/shared-data-access';
+
+export interface ProductAnalyticsData {
+  productId: string;
+  productName: string;
+  totalRevenue: number;
+  totalQuantitySold: number;
+  totalCost: number;
+  profit: number;
+  profitMargin: number;
+  averagePrice: number;
+}
 
 export interface SaleInput {
   userId: string;
@@ -36,10 +48,11 @@ export interface SaleInput {
 export class SaleFacade {
   private saleRepository = inject(SaleRepository);
   private productRepository = inject(ProductRepository);
-  private analyticsRepository = inject(ProductAnalyticsRepository);
   private goalFacade = inject(GoalFacade);
   private stockBatchFacade = inject(StockBatchFacade);
   private batchAnalyticsFacade = inject(BatchAnalyticsFacade);
+  private toastService = inject(ToastService);
+  private authGuard = inject(AuthGuardService);
 
   create(sale: Omit<Sale, 'id'>): Observable<string> {
     return this.saleRepository.create(sale);
@@ -58,11 +71,21 @@ export class SaleFacade {
   }
 
   getByUserId(userId: string): Observable<Sale[]> {
-    return this.saleRepository.getByUserId(userId);
+    if (!this.authGuard.validateAuth(userId)) {
+      return of([]);
+    }
+    return this.authGuard.handlePermissionError(
+      this.saleRepository.getByUserId(userId)
+    );
   }
 
   getByStatus(userId: string, status: SALE_STATUS): Observable<Sale[]> {
-    return this.saleRepository.getByStatus(userId, status);
+    if (!this.authGuard.validateAuth(userId)) {
+      return of([]);
+    }
+    return this.authGuard.handlePermissionError(
+      this.saleRepository.getByStatus(userId, status)
+    );
   }
 
   getByDateRange(
@@ -70,11 +93,21 @@ export class SaleFacade {
     startDate: Timestamp,
     endDate: Timestamp
   ): Observable<Sale[]> {
-    return this.saleRepository.getByDateRange(userId, startDate, endDate);
+    if (!this.authGuard.validateAuth(userId)) {
+      return of([]);
+    }
+    return this.authGuard.handlePermissionError(
+      this.saleRepository.getByDateRange(userId, startDate, endDate)
+    );
   }
 
   getRecentSales(userId: string, limit?: number): Observable<Sale[]> {
-    return this.saleRepository.getRecentSales(userId, limit);
+    if (!this.authGuard.validateAuth(userId)) {
+      return of([]);
+    }
+    return this.authGuard.handlePermissionError(
+      this.saleRepository.getRecentSales(userId, limit)
+    );
   }
 
   updateStatus(id: string, status: SALE_STATUS): Observable<void> {
@@ -85,7 +118,6 @@ export class SaleFacade {
    * Registra uma nova venda com todos os cálculos, alocação de lotes e atualizações
    */
   registerSale(input: SaleInput, allocationStrategy: AllocationStrategy = 'FIFO'): Observable<string> {
-    // 1. Buscar todos os produtos envolvidos na venda
     const productIds = input.items.map(item => item.productId);
     const productObservables = productIds.map(id =>
       this.productRepository.getById(id)
@@ -93,13 +125,11 @@ export class SaleFacade {
 
     return forkJoin(productObservables).pipe(
       switchMap(products => {
-        // Validar se todos os produtos existem
         const allProductsExist = products.every(p => p !== null);
         if (!allProductsExist) {
           throw new Error('Um ou mais produtos não foram encontrados');
         }
 
-        // 2. Alocar lotes para cada item da venda
         const allocationObservables = input.items.map(item =>
           this.stockBatchFacade.allocateBatches(
             input.userId,
@@ -229,15 +259,9 @@ export class SaleFacade {
                 );
               }),
               switchMap(createdSaleId => {
-                // Atualizar analytics de produtos (agregado)
-                return this.updateProductAnalytics(input.userId, saleItems).pipe(
-                  map(() => createdSaleId)
-                );
-              }),
-              switchMap(finalSaleId => {
                 // Atualizar metas de vendas
                 return this.updateSalesGoals(input.userId, totalAmount).pipe(
-                  map(() => finalSaleId)
+                  map(() => createdSaleId)
                 );
               })
             );
@@ -245,67 +269,118 @@ export class SaleFacade {
         );
       }),
       catchError(error => {
-        // console.error('Erro ao registrar venda:', error);
-        throw error;
+        this.toastService.error(
+          error?.message || 'Não foi possível registrar a venda. Verifique os dados e tente novamente.'
+        );
+        return throwError(() => error);
       })
     );
   }
 
   /**
-   * Atualiza ou cria analytics para os produtos vendidos
+   * Calcula analytics de produtos diretamente das vendas
+   * Retorna os produtos mais lucrativos
    */
-  private updateProductAnalytics(userId: string, saleItems: SaleItem[]): Observable<void> {
-    const updates = saleItems.map(item => {
-      // Buscar analytics existente para o produto
-      return this.analyticsRepository.getByProduct(userId, item.productId).pipe(
-        switchMap(existingAnalytics => {
-          const now = Timestamp.now();
+  getTopProfitableProducts(userId: string, limit = 10): Observable<ProductAnalyticsData[]> {
+    // Validação: retornar vazio se userId não estiver disponível
+    if (!this.authGuard.validateAuth(userId)) {
+      return of([]);
+    }
 
-          if (existingAnalytics.length > 0) {
-            // Atualizar analytics existente (pegar o mais recente)
-            const analytics = existingAnalytics[0];
+    return this.getByUserId(userId).pipe(
+      map(sales => {
+        const completedSales = sales.filter(s => s.status === SALE_STATUS.COMPLETED);
+        const productMap = new Map<string, ProductAnalyticsData>();
 
-            return this.analyticsRepository.update(analytics.id!, {
-              totalRevenue: analytics.totalRevenue + item.totalPrice,
-              totalQuantitySold: analytics.totalQuantitySold + item.quantity,
-              totalCost: analytics.totalCost + item.totalCost,
-              profit: analytics.profit + item.profit,
-              profitMargin: ((analytics.profit + item.profit) / (analytics.totalRevenue + item.totalPrice)) * 100,
-              averagePrice: (analytics.totalRevenue + item.totalPrice) / (analytics.totalQuantitySold + item.quantity),
-              lastUpdated: now,
-              period: {
-                startDate: analytics.period.startDate,
-                endDate: now
-              }
-            });
-          } else {
-            // Criar novo analytics
-            return this.analyticsRepository.create({
-              userId,
-              productId: item.productId,
-              productName: item.productName,
-              totalRevenue: item.totalPrice,
-              totalQuantitySold: item.quantity,
-              totalCost: item.totalCost,
-              profit: item.profit,
-              profitMargin: (item.profit / item.totalPrice) * 100,
-              averagePrice: item.pricePerUnit,
-              period: {
-                startDate: now,
-                endDate: now
-              },
-              lastUpdated: now
-            }).pipe(map(() => void 0));
-          }
-        }),
-        catchError(_error => {
-          // console.error(`Erro ao atualizar analytics do produto ${item.productId}:`, _error);
-          return of(void 0);
-        })
-      );
-    });
+        // Agregar dados de todos os itens vendidos
+        completedSales.forEach(sale => {
+          sale.items.forEach(item => {
+            const existing = productMap.get(item.productId);
 
-    return forkJoin(updates).pipe(map(() => void 0));
+            if (existing) {
+              existing.totalRevenue += item.totalPrice;
+              existing.totalQuantitySold += item.quantity;
+              existing.totalCost += item.totalCost;
+              existing.profit += item.profit;
+            } else {
+              productMap.set(item.productId, {
+                productId: item.productId,
+                productName: item.productName,
+                totalRevenue: item.totalPrice,
+                totalQuantitySold: item.quantity,
+                totalCost: item.totalCost,
+                profit: item.profit,
+                profitMargin: 0,
+                averagePrice: 0
+              });
+            }
+          });
+        });
+
+        // Calcular médias e margens
+        const analytics = Array.from(productMap.values()).map(data => ({
+          ...data,
+          profitMargin: data.totalRevenue > 0 ? (data.profit / data.totalRevenue) * 100 : 0,
+          averagePrice: data.totalQuantitySold > 0 ? data.totalRevenue / data.totalQuantitySold : 0
+        }));
+
+        // Ordenar por lucro e limitar
+        return analytics
+          .sort((a, b) => b.profit - a.profit)
+          .slice(0, limit);
+      })
+    );
+  }
+
+  /**
+   * Calcula analytics de produtos por receita total
+   */
+  getTopRevenueProducts(userId: string, limit = 10): Observable<ProductAnalyticsData[]> {
+    // Validação: retornar vazio se userId não estiver disponível
+    if (!this.authGuard.validateAuth(userId)) {
+      return of([]);
+    }
+
+    return this.getByUserId(userId).pipe(
+      map(sales => {
+        const completedSales = sales.filter(s => s.status === SALE_STATUS.COMPLETED);
+        const productMap = new Map<string, ProductAnalyticsData>();
+
+        completedSales.forEach(sale => {
+          sale.items.forEach(item => {
+            const existing = productMap.get(item.productId);
+
+            if (existing) {
+              existing.totalRevenue += item.totalPrice;
+              existing.totalQuantitySold += item.quantity;
+              existing.totalCost += item.totalCost;
+              existing.profit += item.profit;
+            } else {
+              productMap.set(item.productId, {
+                productId: item.productId,
+                productName: item.productName,
+                totalRevenue: item.totalPrice,
+                totalQuantitySold: item.quantity,
+                totalCost: item.totalCost,
+                profit: item.profit,
+                profitMargin: 0,
+                averagePrice: 0
+              });
+            }
+          });
+        });
+
+        const analytics = Array.from(productMap.values()).map(data => ({
+          ...data,
+          profitMargin: data.totalRevenue > 0 ? (data.profit / data.totalRevenue) * 100 : 0,
+          averagePrice: data.totalQuantitySold > 0 ? data.totalRevenue / data.totalQuantitySold : 0
+        }));
+
+        return analytics
+          .sort((a, b) => b.totalRevenue - a.totalRevenue)
+          .slice(0, limit);
+      })
+    );
   }
 
   /**
@@ -323,7 +398,7 @@ export class SaleFacade {
         }
 
         // Retornar produtos ao estoque
-        const stockUpdates = sale.items.map(item => 
+        const stockUpdates = sale.items.map(item =>
           this.productRepository.getById(item.productId).pipe(
             switchMap(product => {
               if (!product) {
@@ -355,8 +430,10 @@ export class SaleFacade {
         );
       }),
       catchError(error => {
-        // console.error('Erro ao cancelar venda:', error);
-        throw error;
+        this.toastService.error(
+          error?.message || 'Não foi possível cancelar a venda. Tente novamente.'
+        );
+        return throwError(() => error);
       })
     );
   }
@@ -375,7 +452,7 @@ export class SaleFacade {
         const updates = activeGoals.map(goal => {
           const newValue = goal.currentValue + saleAmount;
           const isCompleted = newValue >= goal.targetValue;
-          
+
           return this.goalFacade.update(goal.id!, {
             currentValue: newValue,
             isCompleted,
@@ -410,7 +487,7 @@ export class SaleFacade {
     return this.getByDateRange(userId, startDate, endDate).pipe(
       map(sales => {
         const completedSales = sales.filter(s => s.status === SALE_STATUS.COMPLETED);
-        
+
         const stats = {
           totalSales: completedSales.length,
           totalRevenue: 0,
@@ -434,8 +511,8 @@ export class SaleFacade {
           });
         });
 
-        stats.averageProfitMargin = stats.totalRevenue > 0 
-          ? (stats.totalProfit / stats.totalRevenue) * 100 
+        stats.averageProfitMargin = stats.totalRevenue > 0
+          ? (stats.totalProfit / stats.totalRevenue) * 100
           : 0;
 
         return stats;

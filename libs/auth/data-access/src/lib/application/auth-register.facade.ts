@@ -1,9 +1,10 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, throwError, delay, tap, switchMap, from } from 'rxjs';
+import { Observable, throwError, tap, switchMap, from, catchError } from 'rxjs';
 import { FarmUser, Location } from '@fiap-hackaton/auth-domain';
 import { GeoCoordinate, GEO_FEATURE_TYPE, calculatePolygonArea } from '@fiap-hackaton/map-domain';
 import { FarmUserRepository } from '../infrastructure/farm-user.repository';
 import { FarmAreaRepository } from '@fiap-hackaton/map-data-access';
+import { Auth, createUserWithEmailAndPassword } from '@angular/fire/auth';
 
 export interface RegisterData {
   name: string;
@@ -26,26 +27,22 @@ export class AuthRegisterFacade {
 
   private repository = inject(FarmUserRepository);
   private farmAreaRepository = inject(FarmAreaRepository);
+  private auth = inject(Auth);
 
   /**
-   * Registra novo usuário usando Firebase
+   * Registra novo usuário usando Firebase Authentication + Firestore
    */
   register(data: RegisterData): Observable<string> {
     this.isLoading.set(true);
     this.error.set(null);
     this.success.set(false);
 
-    // Verifica se email já existe
-    return this.repository.getByEmail(data.email).pipe(
-      delay(500),
-      switchMap((users) => {
-        if (users.length > 0) {
-          this.error.set('Email already registered');
-          this.isLoading.set(false);
-          return throwError(() => new Error('Email already registered'));
-        }
+    // 1. Criar usuário no Firebase Authentication
+    return from(createUserWithEmailAndPassword(this.auth, data.email, data.password)).pipe(
+      switchMap((userCredential) => {
+        const authUserId = userCredential.user.uid;
 
-        // Cria novo usuário
+        // 2. Criar documento do usuário no Firestore usando o UID do Firebase Auth
         const newUser: Omit<FarmUser, 'id'> = {
           name: data.name,
           email: data.email,
@@ -54,14 +51,14 @@ export class AuthRegisterFacade {
           location: data.location,
         };
 
-        return this.repository.create(newUser).pipe(
-          switchMap((userId) => {
-            // Se tem coordenadas da fazenda, cria o FarmArea
+        return this.repository.createWithId(authUserId, newUser).pipe(
+          switchMap(() => {
+            // 3. Se tem coordenadas da fazenda, cria o FarmArea
             if (data.farmAreaCoordinates && data.farmAreaCoordinates.length >= 3) {
-              return from(this.createFarmArea(userId, data)).pipe(
+              return from(this.createFarmArea(authUserId, data)).pipe(
                 switchMap((farmAreaId) => {
-                  // Atualiza o usuário com o farmAreaId
-                  return this.repository.update(userId, { farmAreaId }).pipe(
+                  // 4. Atualiza o usuário com o farmAreaId
+                  return this.repository.update(authUserId, { farmAreaId }).pipe(
                     tap({
                       next: () => {
                         this.success.set(true);
@@ -72,7 +69,7 @@ export class AuthRegisterFacade {
                         this.isLoading.set(false);
                       },
                     }),
-                    switchMap(() => from(Promise.resolve(userId)))
+                    switchMap(() => from(Promise.resolve(authUserId)))
                   );
                 })
               );
@@ -81,15 +78,27 @@ export class AuthRegisterFacade {
             // Se não tem coordenadas, apenas retorna o userId
             this.success.set(true);
             this.isLoading.set(false);
-            return from(Promise.resolve(userId));
-          }),
-          tap({
-            error: (err) => {
-              this.error.set(err.message || 'Registration failed');
-              this.isLoading.set(false);
-            },
+            return from(Promise.resolve(authUserId));
           })
         );
+      }),
+      catchError((error) => {
+        let errorMessage = 'Registration failed';
+
+        // Traduzir erros comuns do Firebase Auth
+        if (error.code === 'auth/email-already-in-use') {
+          errorMessage = 'Email already registered';
+        } else if (error.code === 'auth/weak-password') {
+          errorMessage = 'Password is too weak (minimum 6 characters)';
+        } else if (error.code === 'auth/invalid-email') {
+          errorMessage = 'Invalid email address';
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+
+        this.error.set(errorMessage);
+        this.isLoading.set(false);
+        return throwError(() => new Error(errorMessage));
       })
     );
   }

@@ -9,12 +9,11 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { FloatLabelModule } from 'primeng/floatlabel';
-import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
 import { Timestamp } from '@angular/fire/firestore';
 import { HarvestFacade, ProductionFacade } from '@fiap-hackaton/dashboard-data-access';
 import { AuthLoginFacade } from '@fiap-hackaton/auth-data-access';
 import { Harvest, HARVEST_QUALITY, Production } from '@fiap-hackaton/dashboard-domain';
+import { ToastService } from '@fiap-hackaton/shared-ui';
 
 @Component({
   selector: 'lib-harvest-form',
@@ -28,16 +27,14 @@ import { Harvest, HARVEST_QUALITY, Production } from '@fiap-hackaton/dashboard-d
     InputTextModule,
     TextareaModule,
     FloatLabelModule,
-    ToastModule,
   ],
-  providers: [MessageService],
   templateUrl: './harvest-form.component.html',
   styleUrls: ['./harvest-form.component.css'],
 })
 export class HarvestFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
-  private messageService = inject(MessageService);
+  private toastService = inject(ToastService);
   private harvestFacade = inject(HarvestFacade);
   private productionFacade = inject(ProductionFacade);
   private authFacade = inject(AuthLoginFacade);
@@ -86,11 +83,7 @@ export class HarvestFormComponent implements OnInit {
     const userId = this.authFacade.currentUser()?.id;
 
     if (!userId) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Erro',
-        detail: 'Usuário não autenticado',
-      });
+      this.toastService.error('Usuário não autenticado');
       this.router.navigate(['/auth/login']);
       return;
     }
@@ -110,11 +103,7 @@ export class HarvestFormComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Erro',
-          detail: 'Erro ao carregar plantios disponíveis',
-        });
+        this.toastService.error('Erro ao carregar plantios disponíveis');
         this.isLoading.set(false);
       },
     });
@@ -135,21 +124,13 @@ export class HarvestFormComponent implements OnInit {
   onSubmit(): void {
     if (this.harvestForm.invalid) {
       this.markFormGroupTouched(this.harvestForm);
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Atenção',
-        detail: 'Preencha todos os campos obrigatórios',
-      });
+      this.toastService.warn('Preencha todos os campos obrigatórios');
       return;
     }
 
     const userId = this.authFacade.currentUser()?.id;
     if (!userId) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Erro',
-        detail: 'Usuário não autenticado',
-      });
+      this.toastService.error('Usuário não autenticado');
       return;
     }
 
@@ -159,11 +140,7 @@ export class HarvestFormComponent implements OnInit {
     );
 
     if (!selectedProduction) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Erro',
-        detail: 'Plantio não encontrado',
-      });
+      this.toastService.error('Plantio não encontrado');
       return;
     }
 
@@ -174,11 +151,7 @@ export class HarvestFormComponent implements OnInit {
       : 0;
 
     if (!formValue.productionId) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Erro',
-        detail: 'Plantio não selecionado',
-      });
+      this.toastService.error('Plantio não selecionado');
       return;
     }
 
@@ -212,22 +185,14 @@ export class HarvestFormComponent implements OnInit {
     this.isLoading.set(true);
     this.harvestFacade.performHarvest(harvest).subscribe({
       next: () => {
-        this.messageService.add({
-          severity: 'success',
-          summary: 'Sucesso',
-          detail: 'Colheita registrada com sucesso!',
-        });
+        this.toastService.success('Colheita registrada com sucesso!');
         setTimeout(() => {
           this.router.navigate(['/dashboard']);
         }, 1500);
       },
       error: () => {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Erro',
-          detail: 'Erro ao registrar colheita. Tente novamente.',
-        });
         this.isLoading.set(false);
+        // Error message already shown by facade
       },
     });
   }

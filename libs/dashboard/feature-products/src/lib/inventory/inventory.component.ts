@@ -8,9 +8,10 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
 interface InventoryItem extends Product {
-  stockStatus: 'low' | 'medium' | 'high' | 'out';
+  stockStatus: 'out' | 'critical' | 'low' | 'ok' | 'high' | 'full';
   stockPercentage: number;
-  valueInStock: number;
+  stockLevel: string; // Descritivo do nível atual
+  daysUntilMinStock?: number; // Estimativa baseada em consumo médio
 }
 
 @Component({
@@ -27,11 +28,13 @@ interface InventoryItem extends Product {
       <!-- Summary Cards -->
       @if (summary$ | async; as summary) {
         <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+          <!-- Tipos de Produtos -->
           <div class="bg-white rounded-lg shadow p-6">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-gray-600">Produtos em Estoque</p>
+                <p class="text-sm text-gray-600">Tipos de Produtos</p>
                 <p class="text-2xl font-bold text-gray-800">{{ summary.totalProducts }}</p>
+                <p class="text-xs text-gray-500 mt-1">{{ summary.productsWithStock }} com estoque</p>
               </div>
               <div class="bg-blue-100 p-3 rounded-full">
                 <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -41,43 +44,49 @@ interface InventoryItem extends Product {
             </div>
           </div>
 
+          <!-- Capacidade de Armazenamento -->
           <div class="bg-white rounded-lg shadow p-6">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-gray-600">Quantidade Total</p>
-                <p class="text-2xl font-bold text-green-600">{{ summary.totalQuantity | number:'1.0-2' }}</p>
+                <p class="text-sm text-gray-600">Capacidade Utilizada</p>
+                <p class="text-2xl font-bold text-green-600">{{ summary.storagePercentage | number:'1.0-0' }}%</p>
+                <p class="text-xs text-gray-500 mt-1">{{ summary.totalMaxCapacity | number:'1.0-0' }} unidades máx.</p>
               </div>
               <div class="bg-green-100 p-3 rounded-full">
                 <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/>
                 </svg>
               </div>
             </div>
           </div>
 
+          <!-- Atenção Necessária -->
           <div class="bg-white rounded-lg shadow p-6">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-gray-600">Valor em Estoque</p>
-                <p class="text-2xl font-bold text-purple-600">R$ {{ summary.totalValue | number:'1.2-2' }}</p>
+                <p class="text-sm text-gray-600">Precisam Atenção</p>
+                <p class="text-2xl font-bold text-orange-600">{{ summary.needsAttentionCount }}</p>
+                <p class="text-xs text-gray-500 mt-1">Baixo ou crítico</p>
               </div>
-              <div class="bg-purple-100 p-3 rounded-full">
-                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              <div class="bg-orange-100 p-3 rounded-full">
+                <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                 </svg>
               </div>
             </div>
           </div>
 
+          <!-- Produtos Sem Estoque -->
           <div class="bg-white rounded-lg shadow p-6">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm text-gray-600">Estoque Baixo</p>
-                <p class="text-2xl font-bold text-red-600">{{ summary.lowStockCount }}</p>
+                <p class="text-sm text-gray-600">Sem Estoque</p>
+                <p class="text-2xl font-bold text-red-600">{{ summary.outOfStockCount }}</p>
+                <p class="text-xs text-gray-500 mt-1">Necessitam colheita</p>
               </div>
               <div class="bg-red-100 p-3 rounded-full">
                 <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
               </div>
             </div>
@@ -104,10 +113,9 @@ interface InventoryItem extends Product {
               <tr>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Produto</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoria</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estoque Atual</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estoque Mín/Máx</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Custo Médio</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Valor em Estoque</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quantidade em Estoque</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Níveis (Mín/Máx)</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nível Atual</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
               </tr>
             </thead>
@@ -115,7 +123,7 @@ interface InventoryItem extends Product {
               @if (inventory$ | async; as items) {
                 @if (items.length === 0) {
                   <tr>
-                    <td colspan="7" class="px-6 py-12 text-center text-gray-500">
+                    <td colspan="6" class="px-6 py-12 text-center text-gray-500">
                       <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
                       </svg>
@@ -130,44 +138,64 @@ interface InventoryItem extends Product {
                 } @else {
                   @for (item of items; track item.id) {
                     <tr class="hover:bg-gray-50 transition-colors cursor-pointer" (click)="viewProduct(item.id!)">
+                      <!-- Produto -->
                       <td class="px-6 py-4">
                         <div class="text-sm font-medium text-gray-900">{{ item.name }}</div>
                         <div class="text-sm text-gray-500">{{ item.variety || '-' }}</div>
                       </td>
+
+                      <!-- Categoria -->
                       <td class="px-6 py-4">
                         <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
                           {{ item.category }}
                         </span>
                       </td>
+
+                      <!-- Quantidade em Estoque -->
                       <td class="px-6 py-4">
-                        <div class="flex items-center">
-                          <span class="text-sm font-medium" [class.text-red-600]="item.stockStatus === 'low' || item.stockStatus === 'out'">
-                            {{ item.currentStock | number:'1.0-2' }} {{ item.unit }}
+                        <div class="flex flex-col">
+                          <span class="text-lg font-bold"
+                            [class.text-red-600]="item.stockStatus === 'out' || item.stockStatus === 'critical'"
+                            [class.text-orange-600]="item.stockStatus === 'low'"
+                            [class.text-blue-600]="item.stockStatus === 'ok'"
+                            [class.text-green-600]="item.stockStatus === 'high' || item.stockStatus === 'full'">
+                            {{ item.currentStock || 0 | number:'1.0-2' }}
                           </span>
+                          <span class="text-xs text-gray-500">{{ item.unit }}</span>
                         </div>
-                        <!-- Progress bar -->
-                        @if (item.maxStockLevel && item.maxStockLevel > 0) {
-                          <div class="w-32 h-2 bg-gray-200 rounded-full mt-2">
-                            <div 
-                              class="h-full rounded-full transition-all"
-                              [class.bg-red-500]="item.stockStatus === 'low' || item.stockStatus === 'out'"
-                              [class.bg-yellow-500]="item.stockStatus === 'medium'"
-                              [class.bg-green-500]="item.stockStatus === 'high'"
-                              [style.width.%]="item.stockPercentage">
+                      </td>
+
+                      <!-- Níveis Mín/Máx -->
+                      <td class="px-6 py-4 text-sm text-gray-600">
+                        <div class="flex flex-col gap-1">
+                          <div>Mín: <span class="font-medium">{{ item.minStockLevel || 0 }} {{ item.unit }}</span></div>
+                          <div>Máx: <span class="font-medium">{{ item.maxStockLevel || 'N/A' }}</span></div>
+                        </div>
+                      </td>
+
+                      <!-- Nível Atual com Barra -->
+                      <td class="px-6 py-4">
+                        <div class="flex flex-col gap-2">
+                          <span class="text-sm font-medium text-gray-700">{{ item.stockLevel }}</span>
+                          @if (item.maxStockLevel && item.maxStockLevel > 0) {
+                            <div class="w-full h-2 bg-gray-200 rounded-full">
+                              <div
+                                class="h-full rounded-full transition-all"
+                                [class.bg-red-600]="item.stockStatus === 'out'"
+                                [class.bg-red-500]="item.stockStatus === 'critical'"
+                                [class.bg-orange-500]="item.stockStatus === 'low'"
+                                [class.bg-blue-500]="item.stockStatus === 'ok'"
+                                [class.bg-green-500]="item.stockStatus === 'high'"
+                                [class.bg-green-600]="item.stockStatus === 'full'"
+                                [style.width.%]="item.stockPercentage">
+                              </div>
                             </div>
-                          </div>
-                        }
+                            <span class="text-xs text-gray-500">{{ item.stockPercentage | number:'1.0-0' }}% da capacidade</span>
+                          }
+                        </div>
                       </td>
-                      <td class="px-6 py-4 text-sm text-gray-500">
-                        <div>Mín: {{ item.minStockLevel || 0 }}</div>
-                        <div>Máx: {{ item.maxStockLevel || '-' }}</div>
-                      </td>
-                      <td class="px-6 py-4 text-sm text-gray-900">
-                        R$ {{ item.averageCost || 0 | number:'1.2-2' }}
-                      </td>
-                      <td class="px-6 py-4 text-sm font-medium text-green-600">
-                        R$ {{ item.valueInStock | number:'1.2-2' }}
-                      </td>
+
+                      <!-- Status -->
                       <td class="px-6 py-4">
                         @switch (item.stockStatus) {
                           @case ('out') {
@@ -175,19 +203,29 @@ interface InventoryItem extends Product {
                               Sem Estoque
                             </span>
                           }
-                          @case ('low') {
-                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                              Estoque Baixo
+                          @case ('critical') {
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-700">
+                              Crítico
                             </span>
                           }
-                          @case ('medium') {
+                          @case ('low') {
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
+                              Baixo
+                            </span>
+                          }
+                          @case ('ok') {
                             <span class="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                              Estoque OK
+                              Normal
                             </span>
                           }
                           @case ('high') {
                             <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                              Estoque Alto
+                              Bom
+                            </span>
+                          }
+                          @case ('full') {
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-900">
+                              Cheio
                             </span>
                           }
                         }
@@ -216,9 +254,11 @@ export class InventoryComponent implements OnInit {
   inventory$!: Observable<InventoryItem[]>;
   summary$!: Observable<{
     totalProducts: number;
-    totalQuantity: number;
-    totalValue: number;
-    lowStockCount: number;
+    productsWithStock: number;
+    totalMaxCapacity: number;
+    storagePercentage: number;
+    needsAttentionCount: number;
+    outOfStockCount: number;
   }>;
 
   ngOnInit(): void {
@@ -236,48 +276,162 @@ export class InventoryComponent implements OnInit {
         return products.map((product: Product) => {
           const stockStatus = this.getStockStatus(product);
           const stockPercentage = this.getStockPercentage(product);
-          const valueInStock = (product.currentStock || 0) * (product.averageCost || 0);
+          const stockLevel = this.getStockLevelDescription(product);
 
           return {
             ...product,
             stockStatus,
             stockPercentage,
-            valueInStock
+            stockLevel
           } as InventoryItem;
         }).sort((a: InventoryItem, b: InventoryItem) => {
-          // Ordenar por status: out > low > medium > high
-          const statusOrder: Record<string, number> = { out: 0, low: 1, medium: 2, high: 3 };
+          // Ordenar por prioridade: out > critical > low > ok > high > full
+          const statusOrder: Record<string, number> = {
+            out: 0,
+            critical: 1,
+            low: 2,
+            ok: 3,
+            high: 4,
+            full: 5
+          };
           return statusOrder[a.stockStatus] - statusOrder[b.stockStatus];
         });
       })
     );
 
     this.summary$ = this.inventory$.pipe(
-      map(items => ({
-        totalProducts: items.length,
-        totalQuantity: items.reduce((sum, item) => sum + (item.currentStock || 0), 0),
-        totalValue: items.reduce((sum, item) => sum + item.valueInStock, 0),
-        lowStockCount: items.filter(item => item.stockStatus === 'low' || item.stockStatus === 'out').length
-      }))
+      map(items => {
+        const productsWithStock = items.filter(item => (item.currentStock || 0) > 0).length;
+        const totalMaxCapacity = items.reduce((sum, item) => sum + (item.maxStockLevel || 0), 0);
+        const totalCurrentStock = items.reduce((sum, item) => sum + (item.currentStock || 0), 0);
+        const storagePercentage = totalMaxCapacity > 0 ? (totalCurrentStock / totalMaxCapacity) * 100 : 0;
+        const needsAttentionCount = items.filter(item =>
+          item.stockStatus === 'critical' || item.stockStatus === 'low'
+        ).length;
+        const outOfStockCount = items.filter(item => item.stockStatus === 'out').length;
+
+        return {
+          totalProducts: items.length,
+          productsWithStock,
+          totalMaxCapacity,
+          storagePercentage,
+          needsAttentionCount,
+          outOfStockCount
+        };
+      })
     );
   }
 
-  private getStockStatus(product: Product): 'low' | 'medium' | 'high' | 'out' {
+  /**
+   * Determina o status do estoque baseado em níveis definidos pelo produtor
+   *
+   * Lógica do produtor:
+   * - OUT: Sem produto (precisa colher urgente)
+   * - CRITICAL: Abaixo do mínimo (risco de faltar antes da próxima colheita)
+   * - LOW: Próximo ao mínimo (atenção necessária)
+   * - OK: Entre mínimo e ideal (situação normal)
+   * - HIGH: Próximo à capacidade máxima (estoque bom)
+   * - FULL: Na capacidade máxima (armazenamento cheio)
+   */
+  private getStockStatus(product: Product): 'out' | 'critical' | 'low' | 'ok' | 'high' | 'full' {
     const currentStock = product.currentStock || 0;
     const minStock = product.minStockLevel || 0;
-    const maxStock = product.maxStockLevel || 100;
+    const maxStock = product.maxStockLevel || 0;
 
-    if (currentStock === 0) return 'out';
-    if (currentStock <= minStock) return 'low';
-    if (currentStock >= maxStock * 0.7) return 'high';
-    return 'medium';
+    // Sem estoque
+    if (currentStock === 0) {
+      return 'out';
+    }
+
+    // Se não há níveis definidos, considerar OK
+    if (maxStock === 0) {
+      return currentStock > 0 ? 'ok' : 'out';
+    }
+
+    const percentage = (currentStock / maxStock) * 100;
+    const minPercentage = (minStock / maxStock) * 100;
+
+    // Estoque cheio (95% ou mais da capacidade)
+    if (percentage >= 95) {
+      return 'full';
+    }
+
+    // Estoque alto (70% - 94% da capacidade)
+    if (percentage >= 70) {
+      return 'high';
+    }
+
+    // Abaixo do nível mínimo definido pelo produtor
+    if (currentStock < minStock) {
+      // Crítico: menos de 50% do mínimo
+      if (currentStock < minStock * 0.5) {
+        return 'critical';
+      }
+      return 'low';
+    }
+
+    // Entre mínimo e 70% da capacidade
+    if (percentage >= minPercentage && percentage < 70) {
+      // Próximo ao mínimo (até 20% acima)
+      if (currentStock <= minStock * 1.2) {
+        return 'low';
+      }
+      return 'ok';
+    }
+
+    return 'ok';
   }
 
+  /**
+   * Calcula a porcentagem de ocupação do estoque
+   */
   private getStockPercentage(product: Product): number {
     const currentStock = product.currentStock || 0;
-    const maxStock = product.maxStockLevel || 100;
-    
+    const maxStock = product.maxStockLevel || 0;
+
+    if (maxStock === 0) return 0;
     return Math.min((currentStock / maxStock) * 100, 100);
+  }
+
+  /**
+   * Retorna descrição textual do nível de estoque
+   */
+  private getStockLevelDescription(product: Product): string {
+    const currentStock = product.currentStock || 0;
+    const minStock = product.minStockLevel || 0;
+    const maxStock = product.maxStockLevel || 0;
+
+    if (currentStock === 0) {
+      return 'Vazio';
+    }
+
+    if (maxStock === 0) {
+      return currentStock > 0 ? 'Com estoque' : 'Vazio';
+    }
+
+    const percentage = (currentStock / maxStock) * 100;
+    const difference = currentStock - minStock;
+
+    if (percentage >= 95) {
+      return 'Capacidade máxima';
+    }
+
+    if (percentage >= 70) {
+      return 'Estoque bom';
+    }
+
+    if (currentStock < minStock) {
+      if (difference < 0) {
+        return `${Math.abs(difference).toFixed(0)} abaixo do mínimo`;
+      }
+      return 'Abaixo do mínimo';
+    }
+
+    if (currentStock <= minStock * 1.2) {
+      return 'Próximo ao mínimo';
+    }
+
+    return 'Nível adequado';
   }
 
   navigateToNewProduct(): void {
