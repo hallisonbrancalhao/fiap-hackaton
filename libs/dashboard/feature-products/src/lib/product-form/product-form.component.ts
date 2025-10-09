@@ -186,17 +186,15 @@ export class ProductFormComponent implements OnInit {
     const formValue = this.productForm.value;
 
     const currentUser = this.authFacade.currentUser();
-    const farmId = this.authFacade.getCurrentFarmId();
     
-    if (!farmId || !currentUser) {
+    if (!currentUser?.id) {
       this.isSaving.set(false);
       return;
     }
 
     const productData: Omit<Product, 'id'> = {
       ...formValue,
-      farmId,
-      userId: currentUser.id || farmId,
+      userId: currentUser.id,
     };
 
     if (this.isEditMode() && this.productId) {

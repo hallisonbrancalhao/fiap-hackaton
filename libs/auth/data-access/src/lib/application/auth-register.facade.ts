@@ -1,7 +1,9 @@
 import { Injectable, inject, signal } from '@angular/core';
-import { Observable, throwError, delay, tap, switchMap } from 'rxjs';
+import { Observable, throwError, delay, tap, switchMap, from } from 'rxjs';
 import { FarmUser, Location } from '@fiap-hackaton/auth-domain';
+import { GeoCoordinate, GEO_FEATURE_TYPE, calculatePolygonArea } from '@fiap-hackaton/map-domain';
 import { FarmUserRepository } from '../infrastructure/farm-user.repository';
+import { FarmAreaRepository } from '@fiap-hackaton/map-data-access';
 
 export interface RegisterData {
   name: string;
@@ -10,6 +12,7 @@ export interface RegisterData {
   farmName: string;
   phone?: string;
   location: Location;
+  farmAreaCoordinates?: GeoCoordinate[]; // Polígono da fazenda
 }
 
 @Injectable({
@@ -22,6 +25,7 @@ export class AuthRegisterFacade {
   success = signal<boolean>(false);
 
   private repository = inject(FarmUserRepository);
+  private farmAreaRepository = inject(FarmAreaRepository);
 
   /**
    * Registra novo usuário usando Firebase
@@ -51,11 +55,35 @@ export class AuthRegisterFacade {
         };
 
         return this.repository.create(newUser).pipe(
+          switchMap((userId) => {
+            // Se tem coordenadas da fazenda, cria o FarmArea
+            if (data.farmAreaCoordinates && data.farmAreaCoordinates.length >= 3) {
+              return from(this.createFarmArea(userId, data)).pipe(
+                switchMap((farmAreaId) => {
+                  // Atualiza o usuário com o farmAreaId
+                  return this.repository.update(userId, { farmAreaId }).pipe(
+                    tap({
+                      next: () => {
+                        this.success.set(true);
+                        this.isLoading.set(false);
+                      },
+                      error: (err) => {
+                        this.error.set(err.message || 'Failed to link farm area');
+                        this.isLoading.set(false);
+                      },
+                    }),
+                    switchMap(() => from(Promise.resolve(userId)))
+                  );
+                })
+              );
+            }
+
+            // Se não tem coordenadas, apenas retorna o userId
+            this.success.set(true);
+            this.isLoading.set(false);
+            return from(Promise.resolve(userId));
+          }),
           tap({
-            next: () => {
-              this.success.set(true);
-              this.isLoading.set(false);
-            },
             error: (err) => {
               this.error.set(err.message || 'Registration failed');
               this.isLoading.set(false);
@@ -64,6 +92,37 @@ export class AuthRegisterFacade {
         );
       })
     );
+  }
+
+  /**
+   * Cria a FarmArea no Firestore
+   */
+  private async createFarmArea(userId: string, data: RegisterData): Promise<string> {
+    if (!data.farmAreaCoordinates) {
+      throw new Error('Farm area coordinates are required');
+    }
+
+    const coordinates = data.farmAreaCoordinates;
+    const areaM2 = calculatePolygonArea(coordinates);
+    const areaHectares = areaM2 / 10000;
+
+    const farmArea: Omit<import('@fiap-hackaton/domain').FarmArea, 'id' | 'createdAt' | 'updatedAt'> = {
+      userId,
+      type: GEO_FEATURE_TYPE.POLYGON,
+      coordinates: coordinates, // Array simples de coordenadas, não aninhado
+      properties: {
+        farmName: data.farmName,
+        ownerName: data.name,
+        totalAreaM2: areaM2,
+        totalAreaHectares: areaHectares,
+        address: data.location.address,
+        color: '#10B981',
+        fillColor: '#10B981',
+        fillOpacity: 0.2,
+      },
+    };
+
+    return await this.farmAreaRepository.createFarmArea(farmArea).toPromise() as string;
   }
 
   /**

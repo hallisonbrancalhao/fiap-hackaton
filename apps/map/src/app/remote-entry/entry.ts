@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
-import { NxWelcome } from './nx-welcome';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
-  imports: [NxWelcome],
-  selector: 'app-map-entry',
-  template: `<app-nx-welcome></app-nx-welcome>`,
+	imports: [RouterOutlet],
+	selector: 'app-map-entry',
+	template: `<router-outlet />`
 })
 export class RemoteEntry {}

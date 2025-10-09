@@ -21,7 +21,11 @@
             "input": "apps/shell/public"
           }
         ],
-        "styles": ["apps/shell/src/styles.scss"],
+        "styles": [
+          "apps/shell/src/styles.scss",
+          "node_modules/leaflet/dist/leaflet.css",
+          "node_modules/leaflet-draw/dist/leaflet.draw.css"
+        ],
         "customWebpackConfig": {
           "path": "apps/shell/webpack.config.ts"
         }

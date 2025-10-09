@@ -170,10 +170,9 @@ export class AnalyticsDashboardComponent implements OnInit {
 
   private loadAnalytics(): void {
     this.isLoading.set(true);
-    
-    // Busca o userId do usuário autenticado
+
     const currentUser = this.authFacade.currentUser();
-    
+
     if (!currentUser?.id) {
       this.isLoading.set(false);
       return;
@@ -186,7 +185,8 @@ export class AnalyticsDashboardComponent implements OnInit {
         this.analytics.set(analytics);
         this.isLoading.set(false);
       },
-      error: () => {
+      error: (err) => {
+				console.log('Error loading analytics', err);
         this.isLoading.set(false);
       },
     });

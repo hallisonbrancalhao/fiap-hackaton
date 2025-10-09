@@ -10,28 +10,27 @@ import { where, limit, Timestamp } from '@angular/fire/firestore';
 export class SaleRepository extends BaseRepository<Sale> {
   protected collectionName = 'sales';
 
-
-  getByStatus(farmId: string, status: SALE_STATUS): Observable<Sale[]> {
+  getByStatus(userId: string, status: SALE_STATUS): Observable<Sale[]> {
     return this.getAll([
-      where('farmId', '==', farmId),
+      where('userId', '==', userId),
       where('status', '==', status)
     ]);
   }
 
   getByDateRange(
-    farmId: string,
+    userId: string,
     startDate: Timestamp,
     endDate: Timestamp
   ): Observable<Sale[]> {
     return this.getAll([
-      where('farmId', '==', farmId),
+      where('userId', '==', userId),
       where('saleDate', '>=', startDate),
       where('saleDate', '<=', endDate)
     ]);
   }
 
-  getRecentSales(farmId: string, limitCount = 10): Observable<Sale[]> {
-    return this.getByFarmId(farmId, [
+  getRecentSales(userId: string, limitCount = 10): Observable<Sale[]> {
+    return this.getByUserId(userId, [
       limit(limitCount)
     ]);
   }

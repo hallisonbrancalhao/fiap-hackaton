@@ -9,12 +9,7 @@ import { MessageModule } from 'primeng/message';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { CardComponent } from '@fiap-hackaton/shared-ui';
 import { AuthRegisterFacade } from '@fiap-hackaton/auth-data-access';
-import { MapLocationPickerComponent } from './map-location-picker/map-location-picker.component';
-
-interface LocationCoordinates {
-  latitude: number;
-  longitude: number;
-}
+import { MapAreaDrawComponent, FarmAreaDrawResult } from './map-area-draw/map-area-draw.component';
 
 @Component({
   selector: 'fiap-farms-register',
@@ -36,6 +31,7 @@ export class FeatureRegister {
   protected registerFacade = inject(AuthRegisterFacade);
   protected registerForm: FormGroup;
   protected submitted = signal(false);
+  protected farmAreaDrawn = signal<FarmAreaDrawResult | null>(null);
 
   private fb = inject(FormBuilder);
   private router = inject(Router);
@@ -55,6 +51,7 @@ export class FeatureRegister {
     }
 
     const formValue = this.registerForm.value;
+    const drawnArea = this.farmAreaDrawn();
 
     const registerData = {
       name: formValue.name,
@@ -63,10 +60,11 @@ export class FeatureRegister {
       farmName: formValue.farmName,
       phone: formValue.phone,
       location: {
-        latitude: formValue.latitude,
-        longitude: formValue.longitude,
+        latitude: drawnArea?.centerPoint.latitude || formValue.latitude,
+        longitude: drawnArea?.centerPoint.longitude || formValue.longitude,
         address: formValue.address,
       },
+      farmAreaCoordinates: drawnArea?.coordinates,
     };
 
     this.registerFacade.register(registerData).subscribe({
@@ -87,21 +85,22 @@ export class FeatureRegister {
   }
 
   protected onOpenMapPicker(): void {
-    this.dialogRef = this.dialogService.open(MapLocationPickerComponent, {
-      header: 'Selecione a localização da sua fazenda',
-      width: '80vw',
-      height: '80vh',
+    this.dialogRef = this.dialogService.open(MapAreaDrawComponent, {
+      header: 'Demarque a área da sua fazenda',
+      width: '90vw',
+      height: '90vh',
       modal: true,
       draggable: false,
       resizable: false,
     });
 
     if (this.dialogRef) {
-      this.dialogRef.onClose.subscribe((location: LocationCoordinates | null) => {
-        if (location) {
+      this.dialogRef.onClose.subscribe((result: FarmAreaDrawResult | null) => {
+        if (result) {
+          this.farmAreaDrawn.set(result);
           this.registerForm.patchValue({
-            latitude: location.latitude,
-            longitude: location.longitude,
+            latitude: result.centerPoint.latitude,
+            longitude: result.centerPoint.longitude,
           });
         }
       });

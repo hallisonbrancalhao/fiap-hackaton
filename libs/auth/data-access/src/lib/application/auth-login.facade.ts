@@ -81,20 +81,6 @@ export class AuthLoginFacade {
   }
 
   /**
-   * Obtém o farmId do usuário autenticado.
-   * Prioriza o campo farmId, usa id como fallback.
-   * @returns farmId ou null se não autenticado
-   */
-  getCurrentFarmId(): string | null {
-    const user = this.currentUser();
-    if (!user) {
-      return null;
-    }
-
-    return user.farmId || user.id || null;
-  }
-
-  /**
    * Limpa mensagem de erro
    */
   clearError(): void {

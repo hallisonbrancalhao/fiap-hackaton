@@ -29,15 +29,15 @@ export class ProductFacade {
     return this.repository.getByUserId(userId);
   }
 
-  getByFarmId(farmId: string): Observable<Product[]> {
-    return this.repository.getByFarmId(farmId);
+  getAll(): Observable<Product[]> {
+    return this.repository.getAll();
   }
 
-  getByCategory(farmId: string, category: PRODUCT_CATEGORY): Observable<Product[]> {
-    return this.repository.getByCategory(farmId, category);
+  getByCategory(userId: string, category: PRODUCT_CATEGORY): Observable<Product[]> {
+    return this.repository.getByCategory(userId, category);
   }
 
-  searchByName(farmId: string, name: string): Observable<Product[]> {
-    return this.repository.searchByName(farmId, name);
+  searchByName(userId: string, name: string): Observable<Product[]> {
+    return this.repository.searchByName(userId, name);
   }
 }

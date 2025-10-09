@@ -1,4 +1,4 @@
 import { Route } from '@angular/router';
-import { RemoteEntry } from './entry';
+import { mapShellRoutes } from '@fiap-hackaton/shell-map';
 
-export const remoteRoutes: Route[] = [{ path: '', component: RemoteEntry }];
+export const remoteRoutes: Route[] = mapShellRoutes;

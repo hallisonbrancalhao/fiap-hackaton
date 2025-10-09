@@ -242,7 +242,6 @@ export class SaleListComponent implements OnInit {
 	private loadSales(): void {
 		this.isLoading.set(true);
 		
-		// Busca o farmId do usuário autenticado
 		const currentUser = this.authFacade.currentUser();
 		
 		if (!currentUser?.id) {
@@ -250,9 +249,7 @@ export class SaleListComponent implements OnInit {
 			return;
 		}
 
-		const farmId = currentUser.id;
-
-		this.saleFacade.getByFarmId(farmId).subscribe({
+		this.saleFacade.getByUserId(currentUser.id).subscribe({
 			next: (sales) => {
 				this.sales.set(sales);
 				this.filterSales();

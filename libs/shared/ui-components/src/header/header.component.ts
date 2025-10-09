@@ -29,14 +29,19 @@ export class HeaderComponent {
       routerLink: '/dashboard/products'
     },
     {
+      label: 'Estoque',
+      icon: 'pi pi-warehouse',
+      routerLink: '/dashboard/inventory'
+    },
+    {
+      label: 'Plantios',
+      icon: 'pi pi-sun',
+      routerLink: '/dashboard/plantings'
+    },
+    {
       label: 'Vendas',
       icon: 'pi pi-shopping-cart',
       routerLink: '/dashboard/sales'
-    },
-    {
-      label: 'Análises',
-      icon: 'pi pi-chart-line',
-      routerLink: '/dashboard/analytics'
     }
   ]);
 

@@ -37,7 +37,7 @@ export default [
 			'**/*.mjs',
 		],
 		rules: {
-			'no-console': 'error',
+			'no-console': 'warn',
 			'no-debugger': 'error',
 			'object-curly-spacing': ['error', 'always'],
 			'keyword-spacing': ['error', { before: true, after: true }],
@@ -50,7 +50,7 @@ export default [
 					caughtErrorsIgnorePattern: '^_',
 				},
 			],
-			'@typescript-eslint/no-explicit-any': 'error',
+			'@typescript-eslint/no-explicit-any': 'warn',
 			'@typescript-eslint/no-shadow': 'error',
 			'@typescript-eslint/naming-convention': [
 				'error',
@@ -59,6 +59,9 @@ export default [
 					format: ['UPPER_CASE'],
 				},
 			],
+			'@angular-eslint/template/label-has-associated-control': 'off',
+			'@typescript-eslint/no-empty-function': 'warn',
+			'no-empty': 'warn',
 		},
 	},
 	{

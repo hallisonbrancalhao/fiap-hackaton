@@ -11,6 +11,7 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { CardComponent, LoadingComponent } from '@fiap-hackaton/shared-ui';
 import { Sale, SALE_STATUS, Product } from '@fiap-hackaton/dashboard-domain';
 import { SaleFacade, ProductFacade } from '@fiap-hackaton/dashboard-data-access';
+import { AuthLoginFacade } from '@fiap-hackaton/auth-data-access';
 import { Timestamp } from '@angular/fire/firestore';
 
 @Component({
@@ -179,10 +180,10 @@ import { Timestamp } from '@angular/fire/firestore';
             <!-- Notes -->
             <div class="flex flex-col gap-2">
               <label for="notes" class="font-semibold">Observações</label>
-              <p-textarea
+              <input
+								pInputTextarea
                 id="notes"
                 formControlName="notes"
-                rows="3"
                 placeholder="Observações sobre a venda (opcional)"
                 [disabled]="isEditMode()"
               />
@@ -228,6 +229,7 @@ export class SaleFormComponent implements OnInit {
 
   private saleFacade = inject(SaleFacade);
   private productFacade = inject(ProductFacade);
+  private authFacade = inject(AuthLoginFacade);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
@@ -317,27 +319,38 @@ export class SaleFormComponent implements OnInit {
       return;
     }
 
+    const currentUser = this.authFacade.currentUser() as any;
+    if (!currentUser?.id) {
+      return;
+    }
+
     this.isSaving.set(true);
     const formValue = this.saleForm.value;
-    const farmId = 'fiap-farms-3e501';
 
     const saleData: Omit<Sale, 'id'> = {
-      farmId,
-      userId: farmId,
+      userId: currentUser.id,
       customerName: formValue.customerName,
       customerContact: formValue.customerContact,
+      customerEmail: formValue.customerEmail || '',
+      customerDocument: formValue.customerDocument || '',
       saleDate: Timestamp.fromDate(formValue.saleDate),
       status: formValue.status,
       items: formValue.items,
       totalAmount: this.getTotalAmount(),
+      totalCost: 0,
+      totalProfit: 0,
+      profitMargin: 0,
+      isPaid: false,
+      paymentMethod: formValue.paymentMethod || 'cash',
       notes: formValue.notes,
     };
 
+
     this.saleFacade.create(saleData).subscribe({
-      next: () => {
+      next: (_id) => {
         this.router.navigate(['/dashboard/sales']);
       },
-      error: () => {
+      error: (_error) => {
         this.isSaving.set(false);
       },
     });
@@ -348,11 +361,27 @@ export class SaleFormComponent implements OnInit {
   }
 
   private loadProducts(): void {
-    const farmId = 'fiap-farms-3e501';
-    this.productFacade.getByFarmId(farmId).subscribe({
+    const currentUser = this.authFacade.currentUser() as any;
+    if (!currentUser?.id) {
+      return;
+    }
+
+
+    this.productFacade.getByUserId(currentUser.id).subscribe({
       next: (products) => {
-        this.productOptions.set(products);
+        products.forEach(_p => {
+        });
+
+        const availableProducts = products.filter(p => (p.currentStock || 0) > 0);
+
+        this.productOptions.set(availableProducts);
+
+        if (availableProducts.length === 0) {
+        } else {
+        }
       },
+      error: (_error) => {
+      }
     });
   }
 

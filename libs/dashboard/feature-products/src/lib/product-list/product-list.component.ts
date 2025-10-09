@@ -128,14 +128,14 @@ export class ProductListComponent implements OnInit {
   private loadProducts(): void {
     this.isLoading.set(true);
 
-    const farmId = this.authFacade.getCurrentFarmId();
+    const currentUser = this.authFacade.currentUser();
 
-    if (!farmId) {
+    if (!currentUser?.id) {
       this.isLoading.set(false);
       return;
     }
 
-    this.productFacade.getByFarmId(farmId).subscribe({
+    this.productFacade.getByUserId(currentUser.id).subscribe({
       next: (products) => {
         this.products.set(products);
         this.isLoading.set(false);

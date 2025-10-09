@@ -10,8 +10,6 @@ import { where, orderBy, Timestamp } from '@angular/fire/firestore';
 export class ProductionRepository extends BaseRepository<Production> {
   protected collectionName = 'productions';
 
-
-
   getByStatus(userId: string, status: PRODUCTION_STATUS): Observable<Production[]> {
     return this.getAll([
       where('userId', '==', userId),

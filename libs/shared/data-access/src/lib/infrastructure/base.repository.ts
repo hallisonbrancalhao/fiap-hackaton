@@ -16,8 +16,9 @@ import {
   DocumentReference,
   collectionData,
   docData,
+  Query,
 } from '@angular/fire/firestore';
-import { Observable, from, map, defer } from 'rxjs';
+import { Observable, from, map, defer, take } from 'rxjs';
 import { inject, Injectable } from '@angular/core';
 
 @Injectable()
@@ -63,6 +64,7 @@ export abstract class BaseRepository<T extends DocumentData> {
     return defer(() => {
       const docRef = this.getDocRef(id);
       return docData(docRef, { idField: 'id' }).pipe(
+        take(1), // Completa após primeira emissão
         map(data => data ? data as T : null)
       );
     });
@@ -72,17 +74,14 @@ export abstract class BaseRepository<T extends DocumentData> {
     return defer(() => {
       const collectionRef = this.getCollectionRef();
       const q = query(collectionRef, ...constraints);
-      return collectionData(q, { idField: 'id' }) as Observable<T[]>;
+      return (collectionData(q, { idField: 'id' }) as Observable<T[]>).pipe(
+        take(1) // Completa após primeira emissão para funcionar com forkJoin
+      );
     });
   }
 
   getByUserId(userId: string, constraints: QueryConstraint[] = []): Observable<T[]> {
     const allConstraints = [where('userId', '==', userId), ...constraints];
-    return this.getAll(allConstraints);
-  }
-
-  getByFarmId(farmId: string, constraints: QueryConstraint[] = []): Observable<T[]> {
-    const allConstraints = [where('farmId', '==', farmId), ...constraints];
     return this.getAll(allConstraints);
   }
 
@@ -104,6 +103,17 @@ export abstract class BaseRepository<T extends DocumentData> {
     }
 
     return this.getAll(constraints);
+  }
+
+  /**
+   * Executa uma query customizada no Firestore
+   */
+  protected getByQuery(q: Query<T>): Observable<T[]> {
+    return defer(() => {
+      return (collectionData(q, { idField: 'id' }) as Observable<T[]>).pipe(
+        take(1)
+      );
+    });
   }
 
   protected getCollectionRef(): CollectionReference<DocumentData> {

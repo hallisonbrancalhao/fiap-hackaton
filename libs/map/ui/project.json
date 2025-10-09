@@ -1,0 +1,21 @@
+{
+	"name": "map-ui",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "libs/map/ui/src",
+	"prefix": "lib",
+	"projectType": "library",
+	"tags": ["type:ui", "scope:map"],
+	"targets": {
+		"test": {
+			"executor": "@nx/jest:jest",
+			"outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+			"options": {
+				"jestConfig": "libs/map/ui/jest.config.ts",
+				"tsConfig": "libs/map/ui/tsconfig.spec.json"
+			}
+		},
+		"lint": {
+			"executor": "@nx/eslint:lint"
+		}
+	}
+}

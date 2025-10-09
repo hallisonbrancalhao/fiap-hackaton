@@ -19,14 +19,33 @@ export enum PRODUCT_UNIT {
 export interface Product {
   id?: string;
   userId?: string;
-  farmId?: string;
   name: string;
   category: PRODUCT_CATEGORY | string;
   unit: PRODUCT_UNIT | string;
   pricePerUnit: number;
   description?: string;
   imageUrl?: string;
-  quantity?: number;
+  
+  // Estoque
+  currentStock: number; // Quantidade atual em estoque
+  minStockLevel?: number; // Nível mínimo de estoque (alerta)
+  maxStockLevel?: number; // Nível máximo de estoque
+  
+  // Custos e precificação
+  averageCost?: number; // Custo médio de produção por unidade
+  suggestedPrice?: number; // Preço sugerido baseado em custos + margem
+  
+  // Informações do produto
+  variety?: string; // Variedade/cultivar
+  origin?: string; // Origem do produto
+  shelfLife?: number; // Vida útil em dias
+  storageConditions?: string; // Condições de armazenamento
+  
+  // Certificações e classificação
+  isOrganic?: boolean;
+  certifications?: string[]; // Certificações (orgânico, fair trade, etc)
+  gradeQuality?: 'A' | 'B' | 'C'; // Classificação de qualidade
+  
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
 }

@@ -20,17 +20,17 @@ export class HubFacade {
 
   /**
    * Obtém estatísticas do dashboard.
-   * 
+   *
    * NOTA: Usa filtragem no cliente para evitar necessidade de índice composto do Firestore.
    * Para melhor performance em produção, crie o índice conforme documentado em FIRESTORE_INDEXES.md
    */
-  getDashboardStats(farmId: string): Observable<DashboardStats> {
+  getDashboardStats(userId: string): Observable<DashboardStats> {
     const startOfMonth = this.getStartOfMonth();
     const endOfMonth = this.getEndOfMonth();
 
     return combineLatest([
-      this.productFacade.getByFarmId(farmId),
-      this.saleFacade.getByFarmId(farmId), // Busca todas as vendas do farm
+      this.productFacade.getByUserId(userId),
+      this.saleFacade.getByUserId(userId),
     ]).pipe(
       map(([products, allSales]) => {
         // Filtrar vendas do mês atual no cliente
@@ -47,12 +47,13 @@ export class HubFacade {
           0
         );
 
-        return {
+        const stats = {
           totalProducts: products.length,
           totalSales: allSales.length,
           monthlyRevenue,
           recentSalesCount: monthlySales.length,
         };
+        return stats;
       })
     );
   }

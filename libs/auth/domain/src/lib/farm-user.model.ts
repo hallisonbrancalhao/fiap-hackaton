@@ -8,12 +8,12 @@ export interface Location {
 
 export interface FarmUser {
   id?: string;
-  farmId?: string;
   name: string;
   email: string;
   phone?: string;
   farmName: string;
-  location: Location;
+  location: Location; // Centro aproximado da fazenda (para referência)
+  farmAreaId?: string; // Referência ao polígono da fazenda em FarmArea
   createdAt?: Timestamp;
   updatedAt?: Timestamp;
 }

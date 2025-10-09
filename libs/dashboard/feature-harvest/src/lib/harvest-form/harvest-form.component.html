@@ -1,0 +1,298 @@
+<div class="container mx-auto p-4">
+  <p-toast />
+  
+  <p-card>
+    <ng-template pTemplate="header">
+      <div class="flex items-center justify-between p-4">
+        <h2 class="text-2xl font-bold">Registrar Colheita</h2>
+      </div>
+    </ng-template>
+
+    <form [formGroup]="harvestForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      <!-- Plantio -->
+      <div class="grid grid-cols-1 gap-4">
+        <div class="flex flex-col gap-2">
+          <label for="productionId" class="font-semibold">Plantio *</label>
+          <p-select
+            id="productionId"
+            formControlName="productionId"
+            [options]="productionOptions()"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Selecione o plantio"
+            [showClear]="true"
+            (onChange)="onProductionChange($event)"
+            [class.ng-invalid]="isFieldInvalid('productionId')"
+            class="w-full"
+          />
+          @if (isFieldInvalid('productionId')) {
+            <small class="text-red-500">Campo obrigatório</small>
+          }
+        </div>
+      </div>
+
+      <!-- Quantidades -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="flex flex-col gap-2">
+          <label for="quantityHarvested" class="font-semibold">Quantidade Colhida *</label>
+          <input
+            pInputText
+            id="quantityHarvested"
+            formControlName="quantityHarvested"
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+            [class.ng-invalid]="isFieldInvalid('quantityHarvested')"
+          />
+          @if (isFieldInvalid('quantityHarvested')) {
+            <small class="text-red-500">Quantidade inválida</small>
+          }
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="quantityLost" class="font-semibold">Quantidade Perdida</label>
+          <input
+            pInputText
+            id="quantityLost"
+            formControlName="quantityLost"
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="quality" class="font-semibold">Qualidade *</label>
+          <p-select
+            id="quality"
+            formControlName="quality"
+            [options]="qualityOptions"
+            optionLabel="label"
+            optionValue="value"
+            placeholder="Selecione a qualidade"
+            class="w-full"
+          />
+        </div>
+      </div>
+
+      <!-- Classificação por Grau -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="flex flex-col gap-2">
+          <label for="gradeA" class="font-semibold">Grau A</label>
+          <input
+            pInputText
+            id="gradeA"
+            formControlName="gradeA"
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="gradeB" class="font-semibold">Grau B</label>
+          <input
+            pInputText
+            id="gradeB"
+            formControlName="gradeB"
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="gradeC" class="font-semibold">Grau C</label>
+          <input
+            pInputText
+            id="gradeC"
+            formControlName="gradeC"
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+          />
+        </div>
+      </div>
+
+      <!-- Data e Horários -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="flex flex-col gap-2">
+          <label for="harvestDate" class="font-semibold">Data da Colheita *</label>
+          <p-date-picker
+            id="harvestDate"
+            formControlName="harvestDate"
+            dateFormat="dd/mm/yy"
+            placeholder="Selecione a data"
+            [showIcon]="true"
+            [class.ng-invalid]="isFieldInvalid('harvestDate')"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="harvestStartTime" class="font-semibold">Hora Início</label>
+          <input
+            pInputText
+            id="harvestStartTime"
+            formControlName="harvestStartTime"
+            type="time"
+            placeholder="00:00"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="harvestEndTime" class="font-semibold">Hora Término</label>
+          <input
+            pInputText
+            id="harvestEndTime"
+            formControlName="harvestEndTime"
+            type="time"
+            placeholder="00:00"
+          />
+        </div>
+      </div>
+
+      <!-- Custos -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="flex flex-col gap-2">
+          <label for="laborCost" class="font-semibold">Custo Mão de Obra</label>
+          <input
+            pInputText
+            id="laborCost"
+            formControlName="laborCost"
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="equipmentCost" class="font-semibold">Custo Equipamentos</label>
+          <input
+            pInputText
+            id="equipmentCost"
+            formControlName="equipmentCost"
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="transportCost" class="font-semibold">Custo Transporte</label>
+          <input
+            pInputText
+            id="transportCost"
+            formControlName="transportCost"
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="harvestCost" class="font-semibold">Custo Total</label>
+          <input
+            pInputText
+            id="harvestCost"
+            formControlName="harvestCost"
+            type="number"
+            step="0.01"
+            placeholder="0.00"
+          />
+        </div>
+      </div>
+
+      <!-- Condições e Equipe -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-2">
+          <label for="weatherConditions" class="font-semibold">Condições Climáticas</label>
+          <input
+            pInputText
+            id="weatherConditions"
+            formControlName="weatherConditions"
+            placeholder="Ex: Ensolarado, nublado..."
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex flex-col gap-2">
+            <label for="temperature" class="font-semibold">Temperatura (°C)</label>
+            <input
+              pInputText
+              id="temperature"
+              formControlName="temperature"
+              type="number"
+              step="0.1"
+              placeholder="0.0"
+            />
+          </div>
+
+          <div class="flex flex-col gap-2">
+            <label for="humidity" class="font-semibold">Umidade (%)</label>
+            <input
+              pInputText
+              id="humidity"
+              formControlName="humidity"
+              type="number"
+              step="0.1"
+              placeholder="0.0"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-2">
+          <label for="workersCount" class="font-semibold">Nº de Trabalhadores</label>
+          <input
+            pInputText
+            id="workersCount"
+            formControlName="workersCount"
+            type="number"
+            placeholder="0"
+          />
+        </div>
+
+        <div class="flex flex-col gap-2">
+          <label for="hoursWorked" class="font-semibold">Horas Trabalhadas</label>
+          <input
+            pInputText
+            id="hoursWorked"
+            formControlName="hoursWorked"
+            type="number"
+            step="0.1"
+            placeholder="0.0"
+          />
+        </div>
+      </div>
+
+      <!-- Observações -->
+      <div class="flex flex-col gap-2">
+        <label for="notes" class="font-semibold">Observações</label>
+        <textarea
+          pTextarea
+          id="notes"
+          formControlName="notes"
+          rows="3"
+          placeholder="Observações adicionais..."
+        ></textarea>
+      </div>
+
+      <!-- Botões -->
+      <div class="flex gap-3 justify-end">
+        <p-button
+          label="Cancelar"
+          severity="secondary"
+          (onClick)="onCancel()"
+          [disabled]="isLoading()"
+        />
+        <p-button
+          type="submit"
+          label="Registrar Colheita"
+          [loading]="isLoading()"
+          [disabled]="harvestForm.invalid"
+        />
+      </div>
+    </form>
+  </p-card>
+</div>

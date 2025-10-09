@@ -10,8 +10,6 @@ import { where, orderBy, limit } from '@angular/fire/firestore';
 export class ProductAnalyticsRepository extends BaseRepository<ProductAnalytics> {
   protected collectionName = 'productAnalytics';
 
-
-
   getTopProfitableProducts(userId: string, limitCount = 10): Observable<ProductAnalytics[]> {
     return this.getAll([
       where('userId', '==', userId),

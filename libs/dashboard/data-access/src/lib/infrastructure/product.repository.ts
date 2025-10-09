@@ -10,16 +10,16 @@ import { where } from '@angular/fire/firestore';
 export class ProductRepository extends BaseRepository<Product> {
   protected collectionName = 'products';
 
-  getByCategory(farmId: string, category: PRODUCT_CATEGORY): Observable<Product[]> {
+  getByCategory(userId: string, category: PRODUCT_CATEGORY): Observable<Product[]> {
     return this.getAll([
-      where('farmId', '==', farmId),
+      where('userId', '==', userId),
       where('category', '==', category)
     ]);
   }
 
-  searchByName(farmId: string, name: string): Observable<Product[]> {
+  searchByName(userId: string, name: string): Observable<Product[]> {
     return this.getAll([
-      where('farmId', '==', farmId),
+      where('userId', '==', userId),
       where('name', '>=', name),
       where('name', '<=', name + '\uf8ff')
     ]);

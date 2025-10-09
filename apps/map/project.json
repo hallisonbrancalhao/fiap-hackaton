@@ -21,7 +21,11 @@
             "input": "apps/map/public"
           }
         ],
-        "styles": ["apps/map/src/styles.scss"],
+        "styles": [
+          "apps/map/src/styles.scss",
+          "node_modules/leaflet/dist/leaflet.css",
+          "node_modules/leaflet-draw/dist/leaflet.draw.css"
+        ],
         "customWebpackConfig": {
           "path": "apps/map/webpack.config.ts"
         }
