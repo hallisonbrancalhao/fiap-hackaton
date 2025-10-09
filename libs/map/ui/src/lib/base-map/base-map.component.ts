@@ -25,6 +25,10 @@ export class BaseMapComponent implements AfterViewInit, OnDestroy {
   height = input<string>('500px');
 
   protected map?: L.Map;
+  private currentDrawingPolygon: L.Polygon | null = null;
+  private drawingCoordinates: GeoCoordinate[] = [];
+  private drawingCallback: ((coords: GeoCoordinate[]) => void) | null = null;
+  private drawingMarkers: L.Marker[] = [];
 
   ngAfterViewInit(): void {
     setTimeout(() => {
@@ -36,7 +40,6 @@ export class BaseMapComponent implements AfterViewInit, OnDestroy {
     const container = this.mapContainer()?.nativeElement;
     if (!container) return;
 
-    // Fix para ícones padrão do Leaflet
     delete (L.Icon.Default.prototype as L.Icon & { _getIconUrl?: () => string })._getIconUrl;
     L.Icon.Default.mergeOptions({
       iconRetinaUrl: 'assets/marker-icon-2x.png',
@@ -53,9 +56,6 @@ export class BaseMapComponent implements AfterViewInit, OnDestroy {
     }).addTo(this.map);
   }
 
-  /**
-   * Adiciona um marcador ao mapa
-   */
   addMarker(coordinate: GeoCoordinate, popup?: string): L.Marker {
     if (!this.map) throw new Error('Map not initialized');
 
@@ -68,9 +68,6 @@ export class BaseMapComponent implements AfterViewInit, OnDestroy {
     return marker;
   }
 
-  /**
-   * Adiciona um polígono ao mapa
-   */
   addPolygon(coordinates: GeoCoordinate[], options?: L.PolylineOptions): L.Polygon {
     if (!this.map) throw new Error('Map not initialized');
 
@@ -80,17 +77,11 @@ export class BaseMapComponent implements AfterViewInit, OnDestroy {
     return polygon;
   }
 
-  /**
-   * Centraliza o mapa em uma coordenada
-   */
   setCenter(coordinate: GeoCoordinate, zoom?: number): void {
     if (!this.map) return;
     this.map.setView([coordinate.latitude, coordinate.longitude], zoom || this.map.getZoom());
   }
 
-  /**
-   * Ajusta o mapa para mostrar todos os bounds
-   */
   fitBounds(coordinates: GeoCoordinate[]): void {
     if (!this.map || coordinates.length === 0) return;
 
@@ -99,9 +90,6 @@ export class BaseMapComponent implements AfterViewInit, OnDestroy {
     this.map.fitBounds(bounds, { padding: [50, 50] });
   }
 
-  /**
-   * Remove todas as layers do mapa (exceto tile layer)
-   */
   clearLayers(): void {
     if (!this.map) return;
 
@@ -111,7 +99,104 @@ export class BaseMapComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Adiciona um label (texto) no centro de um polígono
+   */
+  addPolygonLabel(coordinates: GeoCoordinate[], text: string, className?: string): L.Marker {
+    if (!this.map) throw new Error('Map not initialized');
+
+    // Calcular o centro do polígono
+    const centerLat = coordinates.reduce((sum, c) => sum + c.latitude, 0) / coordinates.length;
+    const centerLng = coordinates.reduce((sum, c) => sum + c.longitude, 0) / coordinates.length;
+
+    // Criar ícone customizado com texto
+    const icon = L.divIcon({
+      className: className || 'polygon-label',
+      html: `<div style="
+        text-align: center;
+        pointer-events: none;
+        text-shadow:
+          -1px -1px 0 #fff,
+          1px -1px 0 #fff,
+          -1px 1px 0 #fff,
+          1px 1px 0 #fff,
+          -2px -2px 3px rgba(255,255,255,0.8),
+          2px 2px 3px rgba(255,255,255,0.8);
+        font-family: system-ui, -apple-system, sans-serif;
+        line-height: 1.3;
+        transform: translate(-50%, -50%);
+      ">${text}</div>`,
+      iconSize: [0, 0],
+      iconAnchor: [0, 0]
+    });
+
+    // Adicionar marcador com o label
+    const marker = L.marker([centerLat, centerLng], { icon }).addTo(this.map);
+
+    return marker;
+  }
+
+  startDrawingPolygon(callback: (coords: GeoCoordinate[]) => void): void {
+    this.drawingCallback = callback;
+    this.drawingCoordinates = [];
+    this.drawingMarkers = [];
+
+    if (this.map) {
+      this.map.on('click', this.onMapClickForDrawing.bind(this));
+    }
+  }
+
+  clearDrawing(): void {
+    if (this.map) {
+      this.map.off('click', this.onMapClickForDrawing);
+    }
+
+    if (this.currentDrawingPolygon) {
+      this.map?.removeLayer(this.currentDrawingPolygon);
+      this.currentDrawingPolygon = null;
+    }
+
+    this.drawingMarkers.forEach(marker => {
+      this.map?.removeLayer(marker);
+    });
+
+    this.drawingCoordinates = [];
+    this.drawingMarkers = [];
+    this.drawingCallback = null;
+  }
+
+  private onMapClickForDrawing(e: L.LeafletMouseEvent): void {
+    const coord: GeoCoordinate = {
+      latitude: e.latlng.lat,
+      longitude: e.latlng.lng
+    };
+
+    this.drawingCoordinates.push(coord);
+
+    if (!this.map) return;
+    const marker = L.marker(e.latlng).addTo(this.map);
+    this.drawingMarkers.push(marker);
+
+    if (this.drawingCoordinates.length >= 3) {
+      if (this.currentDrawingPolygon) {
+        this.map?.removeLayer(this.currentDrawingPolygon);
+      }
+
+      this.currentDrawingPolygon = this.addPolygon(this.drawingCoordinates, {
+        color: '#3B82F6',
+        fillColor: '#3B82F6',
+        fillOpacity: 0.3,
+        weight: 2
+      });
+    }
+
+    if (this.drawingCallback) {
+      this.drawingCallback([...this.drawingCoordinates]);
+    }
+  }
+
   ngOnDestroy(): void {
+    this.clearDrawing();
     if (this.map) {
       this.map.remove();
     }
