@@ -6,10 +6,11 @@ import { Timestamp } from '@angular/fire/firestore';
 import { Product } from '@fiap-hackaton/dashboard-domain';
 import { ProductionFacade, ProductFacade, PlantingInput } from '@fiap-hackaton/dashboard-data-access';
 import { AuthLoginFacade } from '@fiap-hackaton/auth-data-access';
+import { InputNumberModule } from 'primeng/inputnumber';
 
 @Component({
   selector: 'lib-planting-form',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule,InputNumberModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="container mx-auto px-4 py-6 max-w-4xl">
@@ -85,87 +86,83 @@ import { AuthLoginFacade } from '@fiap-hackaton/auth-data-access';
         </div>
 
         <!-- Custos -->
-        <div class="mb-6">
-          <h3 class="text-lg font-semibold text-gray-800 mb-4">Custos de Produção</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Custo de Sementes
-              </label>
-              <input
-                type="number"
-                formControlName="seedCost"
-                min="0"
-                step="0.01"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                placeholder="R$ 0,00" />
-            </div>
+      <div class="mb-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Custos de Produção</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Custo de Sementes
+            </label>
+            <p-inputNumber
+              formControlName="seedCost"
+              mode="currency"
+              currency="BRL"
+              locale="pt-BR"
+              class="w-full" />
+          </div>
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Custo de Mão de Obra
-              </label>
-              <input
-                type="number"
-                formControlName="laborCost"
-                min="0"
-                step="0.01"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                placeholder="R$ 0,00" />
-            </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Custo de Mão de Obra
+            </label>
+            <p-inputNumber
+              formControlName="laborCost"
+              mode="currency"
+              currency="BRL"
+              locale="pt-BR"
+              class="w-full" />
+          </div>
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Custo de Fertilizantes
-              </label>
-              <input
-                type="number"
-                formControlName="fertilizerCost"
-                min="0"
-                step="0.01"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                placeholder="R$ 0,00" />
-            </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Custo de Fertilizantes
+            </label>
+            <p-inputNumber
+              formControlName="fertilizerCost"
+              mode="currency"
+              currency="BRL"
+              locale="pt-BR"
+              class="w-full" />
+          </div>
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Custo de Irrigação
-              </label>
-              <input
-                type="number"
-                formControlName="irrigationCost"
-                min="0"
-                step="0.01"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                placeholder="R$ 0,00" />
-            </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Custo de Irrigação
+            </label>
+            <p-inputNumber
+              formControlName="irrigationCost"
+              mode="currency"
+              currency="BRL"
+              locale="pt-BR"
+              class="w-full" />
+          </div>
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Outros Custos
-              </label>
-              <input
-                type="number"
-                formControlName="otherCosts"
-                min="0"
-                step="0.01"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                placeholder="R$ 0,00" />
-            </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Outros Custos
+            </label>
+            <p-inputNumber
+              formControlName="otherCosts"
+              mode="currency"
+              currency="BRL"
+              locale="pt-BR"
+              class="w-full" />
+          </div>
 
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-2">
-                Custo Total
-              </label>
-              <input
-                type="text"
-                [value]="formatCurrency(calculateTotalCost())"
-                readonly
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
-                data-testid="total-cost" />
-            </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Custo Total
+            </label>
+            <input
+              type="text"
+              [value]="formatCurrency(calculateTotalCost())"
+              readonly
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
+              data-testid="total-cost" />
           </div>
         </div>
+      </div>
+
 
         <!-- Área -->
         <div class="mb-6">
