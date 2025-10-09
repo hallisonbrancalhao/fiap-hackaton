@@ -8,11 +8,15 @@ import { TextareaModule } from 'primeng/textarea';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { SelectModule } from 'primeng/select';
 import { DatePickerModule } from 'primeng/datepicker';
-import { CardComponent, LoadingComponent } from '@fiap-hackaton/shared-ui';
-import { Sale, SALE_STATUS, Product } from '@fiap-hackaton/dashboard-domain';
-import { SaleFacade, ProductFacade } from '@fiap-hackaton/dashboard-data-access';
+import { CardComponent, LoadingComponent, ToastService } from '@fiap-hackaton/shared-ui';
+import { SALE_STATUS, Product } from '@fiap-hackaton/dashboard-domain';
+import { SaleFacade, ProductFacade, SaleInput } from '@fiap-hackaton/dashboard-data-access';
 import { AuthLoginFacade } from '@fiap-hackaton/auth-data-access';
 import { Timestamp } from '@angular/fire/firestore';
+
+interface ProductOption extends Product {
+  displayName: string;
+}
 
 @Component({
   selector: 'lib-sale-form',
@@ -107,59 +111,114 @@ import { Timestamp } from '@angular/fire/firestore';
 
               <div formArrayName="items" class="space-y-4">
                 @for (item of items.controls; track $index) {
-                  <div [formGroupName]="$index" class="grid grid-cols-1 md:grid-cols-5 gap-3 items-end p-3 bg-surface-50 rounded">
-                    <div class="flex flex-col gap-2 md:col-span-2">
-                      <label [for]="'productId-' + $index" class="text-sm font-medium">Produto *</label>
-                      <p-select
-                        [inputId]="'productId-' + $index"
-                        formControlName="productId"
-                        [options]="productOptions()"
-                        optionLabel="name"
-                        optionValue="id"
-                        placeholder="Selecione"
-                        (onChange)="onProductChange($index)"
-                        [disabled]="isEditMode()"
-                      />
-                    </div>
-
-                    <div class="flex flex-col gap-2">
-                      <label [for]="'quantity-' + $index" class="text-sm font-medium">Quantidade *</label>
-                      <p-inputNumber
-                        [inputId]="'quantity-' + $index"
-                        formControlName="quantity"
-                        [min]="0"
-                        [disabled]="isEditMode()"
-                        (onInput)="calculateItemTotal($index)"
-                      />
-                    </div>
-
-                    <div class="flex flex-col gap-2">
-                      <label [for]="'pricePerUnit-' + $index" class="text-sm font-medium">Preço Unit. *</label>
-                      <p-inputNumber
-                        [inputId]="'pricePerUnit-' + $index"
-                        formControlName="pricePerUnit"
-                        mode="currency"
-                        currency="BRL"
-                        locale="pt-BR"
-                        [disabled]="isEditMode()"
-                        (onInput)="calculateItemTotal($index)"
-                      />
-                    </div>
-
-                    <div class="flex items-end gap-2">
-                      <div class="flex-1">
-                        <span class="text-sm font-medium block mb-2">Total</span>
-                        <p class="text-lg font-bold">{{ getItemTotal($index) | currency:'BRL' }}</p>
+                  <div [formGroupName]="$index" class="p-4 bg-surface-50 rounded-lg border border-surface-200">
+                    <!-- Informações do Produto Selecionado -->
+                    @if (getSelectedProduct($index); as selectedProduct) {
+                      <div class="mb-3 p-3 bg-blue-50 rounded border border-blue-200">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                          <div>
+                            <span class="text-gray-600">Produto:</span>
+                            <p class="font-semibold text-gray-900">{{ selectedProduct.name }}</p>
+                          </div>
+                          <div>
+                            <span class="text-gray-600">Estoque Total:</span>
+                            <p class="font-semibold text-green-700">{{ selectedProduct.currentStock || 0 | number:'1.0-2' }} {{ selectedProduct.unit }}</p>
+                          </div>
+                          <div>
+                            <span class="text-gray-600">Custo Médio:</span>
+                            <p class="font-semibold text-gray-900">{{ selectedProduct.averageCost || 0 | currency:'BRL' }}/{{ selectedProduct.unit }}</p>
+                          </div>
+                          <div>
+                            <span class="text-gray-600">Preço de Venda:</span>
+                            <p class="font-semibold text-blue-700">{{ selectedProduct.pricePerUnit || 0 | currency:'BRL' }}/{{ selectedProduct.unit }}</p>
+                          </div>
+                        </div>
                       </div>
-                      @if (!isEditMode()) {
-                        <p-button
-                          icon="pi pi-trash"
-                          severity="danger"
-                          [text]="true"
-                          (onClick)="removeItem($index)"
-                          type="button"
+                    }
+
+                    <!-- Campos do Item -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+                      <!-- Produto -->
+                      <div class="flex flex-col gap-2">
+                        <label [for]="'productId-' + $index" class="text-sm font-medium">Produto *</label>
+                        <p-select
+                          [inputId]="'productId-' + $index"
+                          formControlName="productId"
+                          [options]="productOptions()"
+                          optionLabel="name"
+                          optionValue="id"
+                          placeholder="Selecione o produto"
+                          (onChange)="onProductChange($index)"
+                          [disabled]="isEditMode()"
                         />
-                      }
+                      </div>
+
+                      <!-- Quantidade -->
+                      <div class="flex flex-col gap-2">
+                        <label [for]="'quantity-' + $index" class="text-sm font-medium">
+                          Quantidade *
+                        </label>
+                        <p-inputNumber
+                          [inputId]="'quantity-' + $index"
+                          formControlName="quantity"
+                          [min]="0.01"
+                          [max]="getMaxQuantity($index) || undefined"
+                          [disabled]="isEditMode()"
+                          (onInput)="calculateItemTotal($index)"
+                          placeholder="0.00"
+                        />
+                        @if (isQuantityExceedingStock($index)) {
+                          <small class="text-red-500">Máximo: {{ getMaxQuantity($index) }}</small>
+                        } @else if (getMaxQuantity($index)) {
+                          <small class="text-gray-500">Máximo: {{ getMaxQuantity($index) }}</small>
+                        }
+                      </div>
+
+                      <!-- Preço Unitário -->
+                      <div class="flex flex-col gap-2">
+                        <label [for]="'pricePerUnit-' + $index" class="text-sm font-medium">
+                          Preço Unitário *
+                        </label>
+                        <p-inputNumber
+                          [inputId]="'pricePerUnit-' + $index"
+                          formControlName="pricePerUnit"
+                          mode="currency"
+                          currency="BRL"
+                          locale="pt-BR"
+                          [min]="getMinPrice($index) || 0"
+                          [disabled]="isEditMode()"
+                          (onInput)="calculateItemTotal($index)"
+                        />
+                        @if (isPriceBelowCost($index)) {
+                          <small class="text-orange-600">⚠ Abaixo do custo ({{ getMinPrice($index) | currency:'BRL' }})</small>
+                        } @else if (getMinPrice($index)) {
+                          <small class="text-gray-500">Custo: {{ getMinPrice($index) | currency:'BRL' }}</small>
+                        }
+                      </div>
+
+                      <!-- Total e Ações -->
+                      <div class="flex items-end gap-2">
+                        <div class="flex-1">
+                          <span class="text-sm font-medium block mb-1">Total</span>
+                          <div class="flex flex-col">
+                            <p class="text-lg font-bold text-primary-700">{{ getItemTotal($index) | currency:'BRL' }}</p>
+                            @if (getItemProfit($index) !== null) {
+                              <small [class.text-green-600]="getItemProfit($index)! > 0" [class.text-red-600]="getItemProfit($index)! < 0">
+                                Lucro: {{ getItemProfit($index) | currency:'BRL' }}
+                              </small>
+                            }
+                          </div>
+                        </div>
+                        @if (!isEditMode()) {
+                          <p-button
+                            icon="pi pi-trash"
+                            severity="danger"
+                            [text]="true"
+                            (onClick)="removeItem($index)"
+                            type="button"
+                          />
+                        }
+                      </div>
                     </div>
                   </div>
                 }
@@ -219,7 +278,7 @@ export class SaleFormComponent implements OnInit {
   protected isLoading = signal(false);
   protected isSaving = signal(false);
   protected isEditMode = signal(false);
-  protected productOptions = signal<Product[]>([]);
+  protected productOptions = signal<ProductOption[]>([]);
 
   protected statusOptions = [
     { label: 'Pendente', value: SALE_STATUS.PENDING },
@@ -230,6 +289,7 @@ export class SaleFormComponent implements OnInit {
   private saleFacade = inject(SaleFacade);
   private productFacade = inject(ProductFacade);
   private authFacade = inject(AuthLoginFacade);
+  private toastService = inject(ToastService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private fb = inject(FormBuilder);
@@ -313,45 +373,119 @@ export class SaleFormComponent implements OnInit {
     }, 0);
   }
 
+  protected getMaxQuantity(index: number): number | null {
+    const item = this.items.at(index);
+    const productId = item.get('productId')?.value;
+
+    if (!productId) {
+      return null;
+    }
+
+    const product = this.productOptions().find(p => p.id === productId);
+    return product ? (product.currentStock || 0) : null;
+  }
+
+  protected isQuantityExceedingStock(index: number): boolean {
+    const item = this.items.at(index);
+    const quantity = item.get('quantity')?.value || 0;
+    const maxQuantity = this.getMaxQuantity(index);
+
+    if (maxQuantity === null) {
+      return false;
+    }
+
+    return quantity > maxQuantity;
+  }
+
+  protected getSelectedProduct(index: number): Product | null {
+    const item = this.items.at(index);
+    const productId = item.get('productId')?.value;
+
+    if (!productId) {
+      return null;
+    }
+
+    return this.productOptions().find(p => p.id === productId) || null;
+  }
+
+  protected getMinPrice(index: number): number | null {
+    const product = this.getSelectedProduct(index);
+    return product ? (product.averageCost || 0) : null;
+  }
+
+  protected isPriceBelowCost(index: number): boolean {
+    const item = this.items.at(index);
+    const pricePerUnit = item.get('pricePerUnit')?.value || 0;
+    const minPrice = this.getMinPrice(index);
+
+    if (minPrice === null) {
+      return false;
+    }
+
+    return pricePerUnit < minPrice;
+  }
+
+  protected getItemProfit(index: number): number | null {
+    const item = this.items.at(index);
+    const product = this.getSelectedProduct(index);
+
+    if (!product) {
+      return null;
+    }
+
+    const quantity = item.get('quantity')?.value || 0;
+    const pricePerUnit = item.get('pricePerUnit')?.value || 0;
+    const costPerUnit = product.averageCost || 0;
+
+    return (pricePerUnit - costPerUnit) * quantity;
+  }
+
   protected onSubmit(): void {
     if (this.saleForm.invalid || this.items.length === 0) {
       this.saleForm.markAllAsTouched();
+      this.toastService.warn('Por favor, preencha todos os campos obrigatórios');
+      return;
+    }
+
+    // Validate stock for all items
+    const hasStockIssues = this.items.controls.some((_, index) => this.isQuantityExceedingStock(index));
+    if (hasStockIssues) {
+      this.toastService.error('Um ou mais itens excedem o estoque disponível');
       return;
     }
 
     const currentUser = this.authFacade.currentUser() as any;
     if (!currentUser?.id) {
+      this.toastService.error('Usuário não autenticado');
       return;
     }
 
     this.isSaving.set(true);
     const formValue = this.saleForm.value;
 
-    const saleData: Omit<Sale, 'id'> = {
+    // Prepare SaleInput for registerSale method
+    const saleInput: SaleInput = {
       userId: currentUser.id,
+      items: formValue.items.map((item: any) => ({
+        productId: item.productId,
+        quantity: item.quantity,
+        pricePerUnit: item.pricePerUnit
+      })),
       customerName: formValue.customerName,
       customerContact: formValue.customerContact,
-      customerEmail: formValue.customerEmail || '',
-      customerDocument: formValue.customerDocument || '',
-      saleDate: Timestamp.fromDate(formValue.saleDate),
-      status: formValue.status,
-      items: formValue.items,
-      totalAmount: this.getTotalAmount(),
-      totalCost: 0,
-      totalProfit: 0,
-      profitMargin: 0,
-      isPaid: false,
       paymentMethod: formValue.paymentMethod || 'cash',
-      notes: formValue.notes,
+      isPaid: formValue.status === SALE_STATUS.COMPLETED,
+      notes: formValue.notes
     };
 
-
-    this.saleFacade.create(saleData).subscribe({
+    this.saleFacade.registerSale(saleInput).subscribe({
       next: (_id) => {
+        this.toastService.success('Venda registrada com sucesso!');
         this.router.navigate(['/dashboard/sales']);
       },
       error: (_error) => {
         this.isSaving.set(false);
+        // Error message already shown by facade
       },
     });
   }
@@ -366,21 +500,20 @@ export class SaleFormComponent implements OnInit {
       return;
     }
 
-
     this.productFacade.getByUserId(currentUser.id).subscribe({
       next: (products) => {
-        products.forEach(_p => {
-        });
-
-        const availableProducts = products.filter(p => (p.currentStock || 0) > 0);
+        const availableProducts = products
+          .filter(p => (p.currentStock || 0) > 0)
+          .map(p => ({
+            ...p,
+            displayName: `${p.name} (Estoque: ${p.currentStock || 0} ${p.unit})`
+          } as ProductOption));
 
         this.productOptions.set(availableProducts);
-
-        if (availableProducts.length === 0) {
-        } else {
-        }
       },
       error: (_error) => {
+        this.toastService.error('Erro ao carregar produtos. Recarregue a página.');
+        this.productOptions.set([]);
       }
     });
   }
@@ -415,6 +548,7 @@ export class SaleFormComponent implements OnInit {
         this.isLoading.set(false);
       },
       error: () => {
+        this.toastService.error('Venda não encontrada');
         this.isLoading.set(false);
         this.router.navigate(['/dashboard/sales']);
       },

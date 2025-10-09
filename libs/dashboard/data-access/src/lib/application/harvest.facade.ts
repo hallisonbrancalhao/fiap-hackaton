@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, switchMap, forkJoin, of, map, catchError } from 'rxjs';
+import { Observable, switchMap, forkJoin, of, map, catchError, throwError } from 'rxjs';
 import { Harvest, HARVEST_QUALITY, PRODUCTION_STATUS, CreateStockBatchInput } from '@fiap-hackaton/dashboard-domain';
 import { HarvestRepository } from '../infrastructure/harvest.repository';
 import { ProductionRepository } from '../infrastructure/production.repository';
@@ -8,6 +8,7 @@ import { GoalFacade } from './goal.facade';
 import { StockBatchFacade } from './stock-batch.facade';
 import { ProductFacade } from './product.facade';
 import { Timestamp } from '@angular/fire/firestore';
+import { ToastService } from '@fiap-hackaton/shared-ui';
 
 @Injectable({
   providedIn: 'root',
@@ -19,6 +20,7 @@ export class HarvestFacade {
   private productFacade = inject(ProductFacade);
   private goalFacade = inject(GoalFacade);
   private stockBatchFacade = inject(StockBatchFacade);
+  private toastService = inject(ToastService);
 
   create(harvest: Omit<Harvest, 'id'>): Observable<string> {
     return this.harvestRepository.create(harvest);
@@ -149,7 +151,10 @@ export class HarvestFacade {
         );
       }),
       catchError((error) => {
-        throw error;
+        this.toastService.error(
+          error?.message || 'Não foi possível registrar a colheita. Verifique os dados e tente novamente.'
+        );
+        return throwError(() => error);
       })
     );
   }

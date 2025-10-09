@@ -1,9 +1,8 @@
-import { Component, ChangeDetectionStrategy, inject, signal, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal, effect } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { TableModule } from 'primeng/table';
-import { CardComponent, LoadingComponent, EmptyStateComponent } from '@fiap-hackaton/shared-ui';
-import { ProductAnalytics } from '@fiap-hackaton/dashboard-domain';
-import { ProductAnalyticsFacade } from '@fiap-hackaton/dashboard-data-access';
+import { CardComponent, LoadingComponent, EmptyStateComponent, ToastService } from '@fiap-hackaton/shared-ui';
+import { SaleFacade, ProductAnalyticsData } from '@fiap-hackaton/dashboard-data-access';
 import { AuthLoginFacade } from '@fiap-hackaton/auth-data-access';
 
 @Component({
@@ -142,15 +141,26 @@ import { AuthLoginFacade } from '@fiap-hackaton/auth-data-access';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AnalyticsDashboardComponent implements OnInit {
-  protected analytics = signal<ProductAnalytics[]>([]);
+export class AnalyticsDashboardComponent {
+  protected analytics = signal<ProductAnalyticsData[]>([]);
   protected isLoading = signal(false);
 
-  private analyticsFacade = inject(ProductAnalyticsFacade);
+  private saleFacade = inject(SaleFacade);
   private authFacade = inject(AuthLoginFacade);
+  private toastService = inject(ToastService);
 
-  ngOnInit(): void {
-    this.loadAnalytics();
+  constructor() {
+    // Effect reativo: quando o usuário autenticado mudar, recarregar analytics
+    effect(() => {
+      const currentUser = this.authFacade.currentUser();
+
+      if (currentUser?.id) {
+        this.loadAnalytics(currentUser.id);
+      } else {
+        this.analytics.set([]);
+        this.isLoading.set(false);
+      }
+    });
   }
 
   protected getTotalRevenue(): number {
@@ -168,24 +178,16 @@ export class AnalyticsDashboardComponent implements OnInit {
     return Math.round((sum / items.length) * 10) / 10;
   }
 
-  private loadAnalytics(): void {
+  private loadAnalytics(userId: string): void {
     this.isLoading.set(true);
 
-    const currentUser = this.authFacade.currentUser();
-
-    if (!currentUser?.id) {
-      this.isLoading.set(false);
-      return;
-    }
-
-    const userId = currentUser.id;
-
-    this.analyticsFacade.getTopProfitableProducts(userId, 10).subscribe({
+    this.saleFacade.getTopProfitableProducts(userId, 10).subscribe({
       next: (analytics) => {
         this.analytics.set(analytics);
         this.isLoading.set(false);
       },
       error: () => {
+        this.toastService.error('Erro ao carregar análises. Recarregue a página.');
         this.isLoading.set(false);
       },
     });
