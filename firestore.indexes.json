@@ -143,7 +143,17 @@
         { "fieldPath": "userId", "order": "ASCENDING" },
         { "fieldPath": "productId", "order": "ASCENDING" },
         { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "currentQuantity", "order": "DESCENDING" },
+        { "fieldPath": "currentQuantity", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "stockBatches",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "productId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "currentQuantity", "order": "ASCENDING" },
         { "fieldPath": "harvestDate", "order": "ASCENDING" }
       ]
     },
@@ -154,7 +164,7 @@
         { "fieldPath": "userId", "order": "ASCENDING" },
         { "fieldPath": "productId", "order": "ASCENDING" },
         { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "currentQuantity", "order": "DESCENDING" },
+        { "fieldPath": "currentQuantity", "order": "ASCENDING" },
         { "fieldPath": "harvestDate", "order": "DESCENDING" }
       ]
     },
@@ -165,7 +175,7 @@
         { "fieldPath": "userId", "order": "ASCENDING" },
         { "fieldPath": "productId", "order": "ASCENDING" },
         { "fieldPath": "status", "order": "ASCENDING" },
-        { "fieldPath": "currentQuantity", "order": "DESCENDING" },
+        { "fieldPath": "currentQuantity", "order": "ASCENDING" },
         { "fieldPath": "expirationDate", "order": "ASCENDING" }
       ]
     },

@@ -33,8 +33,7 @@ export class StockBatchRepository extends BaseRepository<StockBatch> {
       where('productId', '==', productId),
       where('status', '==', BATCH_STATUS.AVAILABLE),
       where('currentQuantity', '>', 0),
-      orderBy('currentQuantity', 'desc'),
-      orderBy('harvestDate', 'asc')
+      orderBy('currentQuantity', 'desc')
     ) as Query<StockBatch>;
 
     return this.getByQuery(q);
@@ -51,6 +50,7 @@ export class StockBatchRepository extends BaseRepository<StockBatch> {
       where('productId', '==', productId),
       where('status', '==', BATCH_STATUS.AVAILABLE),
       where('currentQuantity', '>', 0),
+      orderBy('currentQuantity'),
       orderBy('harvestDate', 'asc')
     ) as Query<StockBatch>;
 
@@ -68,6 +68,7 @@ export class StockBatchRepository extends BaseRepository<StockBatch> {
       where('productId', '==', productId),
       where('status', '==', BATCH_STATUS.AVAILABLE),
       where('currentQuantity', '>', 0),
+      orderBy('currentQuantity'),
       orderBy('harvestDate', 'desc')
     ) as Query<StockBatch>;
 
@@ -85,6 +86,7 @@ export class StockBatchRepository extends BaseRepository<StockBatch> {
       where('productId', '==', productId),
       where('status', '==', BATCH_STATUS.AVAILABLE),
       where('currentQuantity', '>', 0),
+      orderBy('currentQuantity'),
       orderBy('expirationDate', 'asc')
     ) as Query<StockBatch>;
 

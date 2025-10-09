@@ -58,6 +58,112 @@ export class SaleFacade {
     return this.saleRepository.create(sale);
   }
 
+  /**
+   * Cria uma venda simples sem alocação automática de lotes ou analytics
+   * Use este método quando quiser apenas registrar a venda manualmente
+   */
+  createSimpleSale(input: SaleInput): Observable<string> {
+    // Buscar dados dos produtos
+    const productIds = input.items.map(item => item.productId);
+    const productObservables = productIds.map(id => this.productRepository.getById(id));
+
+    return forkJoin(productObservables).pipe(
+      switchMap(products => {
+        // Validar se todos os produtos existem
+        const allProductsExist = products.every(p => p !== null);
+        if (!allProductsExist) {
+          throw new Error('Um ou mais produtos não foram encontrados');
+        }
+
+        // Construir itens da venda
+        const saleItems: SaleItem[] = input.items.map((item, index) => {
+          const product = products[index]!;
+          const pricePerUnit = item.pricePerUnit || product.pricePerUnit;
+          const costPerUnit = product.averageCost || 0;
+          const quantity = item.quantity;
+          const totalPrice = pricePerUnit * quantity;
+          const totalCost = costPerUnit * quantity;
+          const profit = totalPrice - totalCost;
+
+          return {
+            productId: item.productId,
+            productName: product.name,
+            quantity,
+            unit: product.unit,
+            pricePerUnit,
+            costPerUnit,
+            totalPrice,
+            totalCost,
+            profit
+          };
+        });
+
+        // Calcular totais
+        const totalAmount = saleItems.reduce((sum, item) => sum + item.totalPrice, 0);
+        const totalCost = saleItems.reduce((sum, item) => sum + item.totalCost, 0);
+        const totalProfit = totalAmount - totalCost;
+        const profitMargin = totalAmount > 0 ? (totalProfit / totalAmount) * 100 : 0;
+
+        // Criar objeto de venda limpo
+        const saleData: any = {
+          userId: input.userId,
+          items: saleItems,
+          totalAmount,
+          totalCost,
+          totalProfit,
+          profitMargin,
+          isPaid: input.isPaid || false,
+          status: SALE_STATUS.COMPLETED,
+          saleDate: Timestamp.now(),
+          createdAt: Timestamp.now(),
+          updatedAt: Timestamp.now()
+        };
+
+        // Adicionar campos opcionais
+        if (input.customerName) saleData.customerName = input.customerName;
+        if (input.customerContact) saleData.customerContact = input.customerContact;
+        if (input.customerEmail) saleData.customerEmail = input.customerEmail;
+        if (input.customerDocument) saleData.customerDocument = input.customerDocument;
+        if (input.paymentMethod) saleData.paymentMethod = input.paymentMethod;
+        if (input.isPaid) saleData.paymentDate = Timestamp.now();
+        if (input.deliveryAddress) saleData.deliveryAddress = input.deliveryAddress;
+        if (input.deliveryDate) saleData.deliveryDate = input.deliveryDate;
+        if (input.deliveryFee !== undefined && input.deliveryFee !== null) saleData.deliveryFee = input.deliveryFee;
+        if (input.notes) saleData.notes = input.notes;
+        if (input.invoiceNumber) saleData.invoiceNumber = input.invoiceNumber;
+
+        // Limpar undefined
+        const sale = this.removeUndefinedFields(saleData) as Omit<Sale, 'id'>;
+
+        // Apenas criar a venda - SEM alocação de lotes, SEM analytics automáticos
+        return this.saleRepository.create(sale).pipe(
+          switchMap(saleId => {
+            // Atualizar estoque dos produtos (simples decrement)
+            const stockUpdates = input.items.map((item, index) => {
+              const product = products[index]!;
+              const newStock = (product.currentStock || 0) - item.quantity;
+
+              return this.productRepository.update(item.productId, {
+                currentStock: Math.max(0, newStock),
+                updatedAt: Timestamp.now()
+              });
+            });
+
+            return forkJoin(stockUpdates.length > 0 ? stockUpdates : [of(void 0)]).pipe(
+              map(() => saleId)
+            );
+          })
+        );
+      }),
+      catchError(error => {
+        this.toastService.error(
+          error?.message || 'Não foi possível criar a venda. Verifique os dados e tente novamente.'
+        );
+        return throwError(() => error);
+      })
+    );
+  }
+
   update(id: string, sale: Partial<Sale>): Observable<void> {
     return this.saleRepository.update(id, sale);
   }
@@ -158,71 +264,109 @@ export class SaleFacade {
           }
         }
 
-        // 4. Construir itens da venda com custos reais dos lotes
+        // 4. Calcular totais base (sem taxa de entrega)
+        const itemsTotal = input.items.reduce((sum, item, index) => {
+          const product = products[index]!;
+          const pricePerUnit = item.pricePerUnit || product.pricePerUnit;
+          return sum + (pricePerUnit * item.quantity);
+        }, 0);
+
+        // 5. Rateio proporcional da taxa de entrega entre os itens
+        const deliveryFee = input.deliveryFee || 0;
+
+        // 6. Construir itens da venda com custos reais dos lotes + rateio da taxa de entrega
         const saleItems: SaleItem[] = input.items.map((item, index) => {
           const product = products[index]!;
           const allocationResult = allocationResults[index];
           const pricePerUnit = item.pricePerUnit || product.pricePerUnit;
           const costPerUnit = allocationResult.averageCostPerUnit; // Custo real dos lotes alocados
           const quantity = item.quantity;
-          const totalPrice = pricePerUnit * quantity;
-          const totalCost = allocationResult.totalCost;
-          const profit = totalPrice - totalCost;
 
-          return {
+          // Preço base do item (sem taxa de entrega)
+          const itemBasePrice = pricePerUnit * quantity;
+
+          // Calcular proporção deste item no total da venda
+          const itemProportion = itemsTotal > 0 ? itemBasePrice / itemsTotal : 0;
+
+          // Rateio da taxa de entrega proporcional ao valor do item
+          const itemDeliveryFee = deliveryFee * itemProportion;
+
+          // Totais finais incluindo o rateio da taxa de entrega
+          const totalPrice = itemBasePrice + itemDeliveryFee;
+          const totalCost = allocationResult.totalCost; // Custo não inclui taxa de entrega
+          const profit = totalPrice - totalCost; // Lucro inclui a parte proporcional da taxa de entrega
+
+          // Construir objeto base do item (campos obrigatórios)
+          const saleItem: any = {
             productId: item.productId,
             productName: product.name,
             quantity,
             unit: product.unit,
-            pricePerUnit,
-            costPerUnit,
-            totalPrice,
-            totalCost,
-            profit,
-            batchAllocations: allocationResult.allocations // Rastreabilidade dos lotes
-          } as SaleItem;
+            pricePerUnit, // Preço unitário base (sem taxa de entrega)
+            costPerUnit,  // Custo unitário dos lotes
+            totalPrice,   // Preço total + rateio da taxa de entrega
+            totalCost,    // Custo total dos lotes
+            profit        // Lucro incluindo rateio da taxa de entrega
+          };
+
+          // Adicionar campos opcionais apenas se existirem e tiverem valor
+          if (allocationResult.allocations && allocationResult.allocations.length > 0) {
+            saleItem.batchAllocations = allocationResult.allocations;
+
+            // Extrair productionId do primeiro lote alocado, se existir
+            const firstAllocation = allocationResult.allocations[0];
+            if (firstAllocation?.productionId) {
+              saleItem.productionId = firstAllocation.productionId;
+            }
+          }
+
+          return saleItem as SaleItem;
         });
 
-        // 5. Calcular totais
+        // 7. Calcular totais finais da venda
         const totalAmount = saleItems.reduce((sum, item) => sum + item.totalPrice, 0);
         const totalCost = saleItems.reduce((sum, item) => sum + item.totalCost, 0);
         const totalProfit = totalAmount - totalCost;
         const profitMargin = totalAmount > 0 ? (totalProfit / totalAmount) * 100 : 0;
 
-        // Adicionar taxa de entrega ao total
-        const finalTotalAmount = totalAmount + (input.deliveryFee || 0);
-
-        // 6. Criar objeto de venda
-        const sale: Omit<Sale, 'id'> = {
+        // 8. Criar objeto de venda com todos os campos calculados corretamente
+        const saleData: any = {
           userId: input.userId,
           items: saleItems,
-          totalAmount: finalTotalAmount,
-          totalCost,
-          totalProfit,
-          profitMargin,
 
-          customerName: input.customerName,
-          customerContact: input.customerContact,
-          customerEmail: input.customerEmail,
-          customerDocument: input.customerDocument,
+          // Totais calculados
+          totalAmount,      // Total com taxa de entrega incluída
+          totalCost,        // Custo total dos produtos (sem taxa de entrega)
+          totalProfit,      // Lucro total (inclui taxa de entrega como lucro)
+          profitMargin,     // Margem de lucro percentual
 
-          paymentMethod: input.paymentMethod,
+          // Status da venda
           isPaid: input.isPaid || false,
-          paymentDate: input.isPaid ? Timestamp.now() : undefined,
-          deliveryAddress: input.deliveryAddress,
-          deliveryDate: input.deliveryDate,
-          deliveryFee: input.deliveryFee,
-
           status: SALE_STATUS.COMPLETED,
           saleDate: Timestamp.now(),
-          notes: input.notes,
-          invoiceNumber: input.invoiceNumber,
 
+          // Timestamps
           createdAt: Timestamp.now(),
           updatedAt: Timestamp.now()
         };
 
-        // 7. Criar a venda e confirmar alocações
+        // Adicionar campos opcionais apenas se tiverem valor
+        if (input.customerName) saleData.customerName = input.customerName;
+        if (input.customerContact) saleData.customerContact = input.customerContact;
+        if (input.customerEmail) saleData.customerEmail = input.customerEmail;
+        if (input.customerDocument) saleData.customerDocument = input.customerDocument;
+        if (input.paymentMethod) saleData.paymentMethod = input.paymentMethod;
+        if (input.isPaid) saleData.paymentDate = Timestamp.now();
+        if (input.deliveryAddress) saleData.deliveryAddress = input.deliveryAddress;
+        if (input.deliveryDate) saleData.deliveryDate = input.deliveryDate;
+        if (input.deliveryFee !== undefined && input.deliveryFee !== null) saleData.deliveryFee = input.deliveryFee;
+        if (input.notes) saleData.notes = input.notes;
+        if (input.invoiceNumber) saleData.invoiceNumber = input.invoiceNumber;
+
+        // Remover quaisquer campos undefined recursivamente
+        const sale = this.removeUndefinedFields(saleData) as Omit<Sale, 'id'>;
+
+        // 9. Criar a venda e confirmar alocações
         return this.saleRepository.create(sale).pipe(
           switchMap(saleId => {
             // Confirmar todas as alocações de lotes
@@ -529,5 +673,32 @@ export class SaleFacade {
       paymentDate: paymentDate || Timestamp.now(),
       updatedAt: Timestamp.now()
     });
+  }
+
+  /**
+   * Remove campos undefined de um objeto recursivamente
+   * Necessário para evitar erros do Firestore com campos undefined
+   */
+  private removeUndefinedFields(obj: any): any {
+    if (obj === null || obj === undefined) {
+      return obj;
+    }
+
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.removeUndefinedFields(item));
+    }
+
+    if (typeof obj === 'object' && !(obj instanceof Timestamp) && !(obj instanceof Date)) {
+      const cleaned: any = {};
+      Object.keys(obj).forEach(key => {
+        const value = obj[key];
+        if (value !== undefined) {
+          cleaned[key] = this.removeUndefinedFields(value);
+        }
+      });
+      return cleaned;
+    }
+
+    return obj;
   }
 }

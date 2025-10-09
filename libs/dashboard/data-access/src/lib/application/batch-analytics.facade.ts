@@ -94,12 +94,8 @@ export class BatchAnalyticsFacade {
       profitPerDay: profitPerDay > 0 ? profitPerDay : undefined,
 
       quality: batch.quality,
-      grade: batch.grade,
 
       harvestDate: batch.harvestDate,
-      firstSaleDate,
-      lastSaleDate,
-      expirationDate: batch.expirationDate,
 
       isActive: batch.currentQuantity > 0,
       isSoldOut: batch.soldQuantity >= batch.initialQuantity,
@@ -114,15 +110,24 @@ export class BatchAnalyticsFacade {
       updatedAt: Timestamp.now()
     };
 
+    // Adicionar campos opcionais apenas se existirem
+    if (batch.grade) analytics.grade = batch.grade;
+    if (firstSaleDate) analytics.firstSaleDate = firstSaleDate;
+    if (lastSaleDate) analytics.lastSaleDate = lastSaleDate;
+    if (batch.expirationDate) analytics.expirationDate = batch.expirationDate;
+
+    // Remover campos undefined
+    const cleanedAnalytics = this.removeUndefinedFields(analytics);
+
     // Verificar se já existe analytics para este lote
     return this.analyticsRepository.getByBatch(batch.userId, batch.id ?? '').pipe(
       switchMap(existingAnalytics => {
         if (existingAnalytics.length > 0) {
           // Atualizar existente
-          return this.analyticsRepository.update(existingAnalytics[0].id ?? '', analytics);
+          return this.analyticsRepository.update(existingAnalytics[0].id ?? '', cleanedAnalytics);
         } else {
           // Criar novo
-          return this.analyticsRepository.create(analytics);
+          return this.analyticsRepository.create(cleanedAnalytics);
         }
       })
     );
@@ -423,5 +428,32 @@ export class BatchAnalyticsFacade {
       },
       generatedAt: Timestamp.now()
     };
+  }
+
+  /**
+   * Remove campos undefined de um objeto recursivamente
+   * Necessário para evitar erros do Firestore com campos undefined
+   */
+  private removeUndefinedFields(obj: any): any {
+    if (obj === null || obj === undefined) {
+      return obj;
+    }
+
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.removeUndefinedFields(item));
+    }
+
+    if (typeof obj === 'object' && !(obj instanceof Timestamp) && !(obj instanceof Date)) {
+      const cleaned: any = {};
+      Object.keys(obj).forEach(key => {
+        const value = obj[key];
+        if (value !== undefined) {
+          cleaned[key] = this.removeUndefinedFields(value);
+        }
+      });
+      return cleaned;
+    }
+
+    return obj;
   }
 }
