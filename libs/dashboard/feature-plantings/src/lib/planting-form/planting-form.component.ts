@@ -50,37 +50,54 @@ import { AuthLoginFacade } from '@fiap-hackaton/auth-data-access';
         </div>
 
         <!-- Quantidade e Data -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Quantidade Plantada *
-            </label>
-            <input
-              type="number"
-              formControlName="quantityPlanted"
-              min="0"
-              step="0.01"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-              placeholder="Ex: 100"
-              data-testid="quantity-input" />
-            @if (form.get('quantityPlanted')?.invalid && form.get('quantityPlanted')?.touched) {
-              <p class="text-red-600 text-sm mt-1">Informe a quantidade</p>
-            }
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-2">
-              Data Prevista de Colheita *
-            </label>
-            <input
-              type="date"
-              formControlName="expectedHarvestDate"
-              [min]="minHarvestDate"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
-              data-testid="harvest-date-input" />
-            @if (form.get('expectedHarvestDate')?.invalid && form.get('expectedHarvestDate')?.touched) {
-              <p class="text-red-600 text-sm mt-1">Selecione a data de colheita</p>
-            }
+        <div class="mb-6">
+          <h3 class="text-lg font-semibold text-gray-800 mb-4">Quantidade e Período</h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Quantidade Plantada *
+              </label>
+              <input
+                type="number"
+                formControlName="quantityPlanted"
+                min="0"
+                step="0.01"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                placeholder="Ex: 100"
+                data-testid="quantity-input" />
+              @if (form.get('quantityPlanted')?.invalid && form.get('quantityPlanted')?.touched) {
+                <p class="text-red-600 text-sm mt-1">Informe a quantidade</p>
+              }
+            </div>
+             <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Unidade de Medida *
+              </label>
+              <select
+                formControlName="plantingUnit"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                data-testid="quantity-unit-select">
+                <option value="kg">Quilogramas (kg)</option>
+                <option value="un">Unidades (un)</option>
+                <option value="saca">Sacas</option>
+                <option value="t">Toneladas (t)</option>
+                <option value="g">Gramas (g)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                Data Prevista de Colheita *
+              </label>
+              <input
+                type="date"
+                formControlName="expectedHarvestDate"
+                [min]="minHarvestDate"
+                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                data-testid="harvest-date-input" />
+              @if (form.get('expectedHarvestDate')?.invalid && form.get('expectedHarvestDate')?.touched) {
+                <p class="text-red-600 text-sm mt-1">Selecione a data de colheita</p>
+              }
+            </div>
           </div>
         </div>
 
@@ -240,7 +257,7 @@ import { AuthLoginFacade } from '@fiap-hackaton/auth-data-access';
 
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Produtividade Esperada por Área
+                Produtividade Esperada ({{ productivityUnit() }})
               </label>
               <input
                 type="number"
@@ -248,7 +265,7 @@ import { AuthLoginFacade } from '@fiap-hackaton/auth-data-access';
                 min="0"
                 step="0.01"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                placeholder="Ex: 50" />
+                [placeholder]="'Ex: 50 ' + productivityUnit()" />
             </div>
           </div>
         </div>
@@ -299,6 +316,7 @@ export class PlantingFormComponent implements OnInit {
   products = signal<Product[]>([]);
   submitting = signal(false);
   error = signal<string | null>(null);
+  productivityUnit = signal<string>('kg/hectare');
 
   form: FormGroup;
   minHarvestDate: string;
@@ -312,6 +330,7 @@ export class PlantingFormComponent implements OnInit {
     this.form = this.fb.group({
       productId: ['', Validators.required],
       quantityPlanted: [null, [Validators.required, Validators.min(0.01)]],
+      plantingUnit: ['kg', Validators.required],
       expectedHarvestDate: ['', Validators.required],
       seedCost: [0],
       laborCost: [0],
@@ -330,6 +349,42 @@ export class PlantingFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadProducts();
+    this.setupProductivityUnitUpdates();
+  }
+
+  private setupProductivityUnitUpdates(): void {
+    // Atualizar unidade de produtividade quando mudar quantidade ou área
+    this.form.get('plantingUnit')?.valueChanges.subscribe(() => {
+      this.updateProductivityUnit();
+    });
+    
+    this.form.get('areaUnit')?.valueChanges.subscribe(() => {
+      this.updateProductivityUnit();
+    });
+
+    // Inicializar
+    this.updateProductivityUnit();
+  }
+
+  private updateProductivityUnit(): void {
+    const plantingUnit = this.form.get('plantingUnit')?.value || 'kg';
+    const areaUnit = this.form.get('areaUnit')?.value || 'hectare';
+    
+    // Mapear unidades para formato legível
+    const quantityMap: Record<string, string> = {
+      'kg': 'kg',
+      'un': 'un',
+      'saca': 'sacas',
+      't': 't',
+      'g': 'g'
+    };
+
+    const areaMap: Record<string, string> = {
+      'hectare': 'hectare',
+      'm2': 'm²'
+    };
+
+    this.productivityUnit.set(`${quantityMap[plantingUnit]}/${areaMap[areaUnit]}`);
   }
 
   private loadProducts(): void {
@@ -395,6 +450,7 @@ export class PlantingFormComponent implements OnInit {
       userId: currentUser.id,
       productId: values.productId,
       quantityPlanted: values.quantityPlanted,
+      plantingUnit: values.plantingUnit,
       expectedHarvestDate: Timestamp.fromDate(harvestDate),
       seedCost: values.seedCost || 0,
       laborCost: values.laborCost || 0,
@@ -414,8 +470,8 @@ export class PlantingFormComponent implements OnInit {
       next: () => {
         this.router.navigate(['/dashboard/plantings']);
       },
-      error: () => {
-        this.error.set('Erro ao registrar plantio. Tente novamente.');
+      error: (err) => {
+        this.error.set(`Erro ao registrar plantio: ${err.message || 'Tente novamente.'}`);
         this.submitting.set(false);
       }
     });

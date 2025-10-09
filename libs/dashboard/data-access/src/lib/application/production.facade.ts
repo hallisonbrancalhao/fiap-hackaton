@@ -9,6 +9,7 @@ export interface PlantingInput {
   userId: string;
   productId: string;
   quantityPlanted: number;
+  plantingUnit: string;
   expectedHarvestDate: Timestamp;
 
   // Custos
@@ -125,6 +126,7 @@ export class ProductionFacade {
           productId: input.productId,
           productName: product.name,
           quantityPlanted: input.quantityPlanted,
+          plantingUnit: input.plantingUnit,
           unit: product.unit,
           status: PRODUCTION_STATUS.IN_PRODUCTION,
           plantingDate: Timestamp.now(),
@@ -157,7 +159,6 @@ export class ProductionFacade {
         return this.productionRepository.create(production);
       }),
       catchError(error => {
-        // console.error('Erro ao registrar plantio:', error);
         throw error;
       })
     );
