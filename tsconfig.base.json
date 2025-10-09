@@ -34,6 +34,7 @@
 			"@fiap-hackaton/map-domain": ["libs/map/domain/src/index.ts"],
 			"@fiap-hackaton/map-feature-viewer": ["libs/map/feature-viewer/src/index.ts"],
 			"@fiap-hackaton/map-ui": ["libs/map/ui/src/index.ts"],
+			"@fiap-hackaton/map-util": ["libs/map/util/src/index.ts"],
 			"@fiap-hackaton/shared-data-access": ["libs/shared/data-access/src/index.ts"],
 			"@fiap-hackaton/shared-environments": ["libs/shared/environments/src/index.ts"],
 			"@fiap-hackaton/shared-ui": ["libs/shared/ui/src/index.ts"],
