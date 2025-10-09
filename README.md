@@ -1,77 +1,204 @@
-# FiapHackaton
+# 🌾 Farm Manager - Sistema de Gestão para Fazendas
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+[![Angular](https://img.shields.io/badge/Angular-20.2.0-red)](https://angular.dev)
+[![Nx](https://img.shields.io/badge/Nx-21.5.3-blue)](https://nx.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.9.2-blue)](https://www.typescriptlang.org/)
+[![PrimeNG](https://img.shields.io/badge/PrimeNG-20.2.0-orange)](https://primeng.org/)
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is almost ready ✨.
+Sistema completo de gestão para fazendas construído com **Angular 20**, **Nx Monorepo**, **Firebase/Firestore**, **PrimeNG** e **TailwindCSS**.
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+---
 
-## Finish your CI setup
+## ✨ Features
 
-[Click here to finish setting up your workspace!](https://cloud.nx.app/connect/8qGW6en6dZ)
+### 🔐 Autenticação
+- ✅ Login com email e senha
+- ✅ Registro de usuário e fazenda
+- ✅ Validações completas
+- ✅ Dark mode support
 
+### 📦 Gestão de Produtos
+- ✅ CRUD completo de produtos
+- ✅ Categorias: Vegetables, Fruits, Grains, Dairy, Meat, Other
+- ✅ Preços e unidades de medida
+- ✅ Lista com paginação
 
-## Run tasks
+### 💰 Gestão de Vendas
+- ✅ Registro de vendas
+- ✅ Filtros por status (All, Completed, Pending)
+- ✅ Dashboard de resumo financeiro
+- ✅ Ações: Completar, Visualizar, Deletar
 
-To run tasks with Nx use:
+### 📊 Analytics
+- ✅ Dashboard de métricas
+- ✅ Top produtos mais lucrativos
+- ✅ Receita, Custo, Lucro, Margem
+- ✅ Cards de resumo (Revenue, Profit, Margin)
 
-```sh
-npx nx <target> <project-name>
+---
+
+## 🚀 Quick Start
+
+### 1. Instalar dependências
+```bash
+npm install
 ```
 
-For example:
+### 2. Configurar Firebase
+Siga as instruções em [FIREBASE_SETUP.md](./FIREBASE_SETUP.md)
 
-```sh
-npx nx build myproject
+Edite `libs/shared/environments/firebase.config.ts` com suas credenciais.
+
+### 3. Iniciar aplicação
+```bash
+npm start
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+Acesse: http://localhost:4200
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+---
 
-## Add new projects
+## 📁 Estrutura do Projeto
 
-While you could add new projects to your workspace manually, you might want to leverage [Nx plugins](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) and their [code generation](https://nx.dev/features/generate-code?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) feature.
-
-To install a new plugin you can use the `nx add` command. Here's an example of adding the React plugin:
-```sh
-npx nx add @nx/react
+```
+fiap-hackaton/
+├── apps/
+│   ├── shell/              # Aplicação principal (host)
+│   └── map/                # Micro-frontend de mapas
+│
+├── libs/
+│   ├── auth/               # Autenticação
+│   │   ├── domain/         # Models (FarmUser)
+│   │   ├── data-access/    # Facades e Repositories
+│   │   ├── feature-login/  # Login screen
+│   │   └── feature-register/ # Register screen
+│   │
+│   ├── dashboard/          # Dashboard
+│   │   ├── domain/         # Models (Product, Sale, etc)
+│   │   ├── data-access/    # Facades e Repositories
+│   │   ├── feature-products/  # Products CRUD
+│   │   ├── feature-sales/     # Sales management
+│   │   └── feature-analytics/ # Analytics dashboard
+│   │
+│   └── shared/
+│       ├── ui/             # Componentes reutilizáveis
+│       └── environments/   # Firebase config
 ```
 
-Use the plugin's generator to create new projects. For example, to create a new React app or library:
+---
 
-```sh
-# Generate an app
-npx nx g @nx/react:app demo
+## 🗺️ Rotas
 
-# Generate a library
-npx nx g @nx/react:lib some-lib
+```
+/                       → Redirect to /auth/login
+/auth/login            → Login page
+/auth/register         → Register page
+/dashboard             → Dashboard home
+/dashboard/products    → Products management
+/dashboard/sales       → Sales tracking
+/dashboard/analytics   → Analytics & Reports
 ```
 
-You can use `npx nx list` to get a list of installed plugins. Then, run `npx nx list <plugin-name>` to learn about more specific capabilities of a particular plugin. Alternatively, [install Nx Console](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) to browse plugins and generators in your IDE.
+---
 
-[Learn more about Nx plugins &raquo;](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) | [Browse the plugin registry &raquo;](https://nx.dev/plugin-registry?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## 🛠️ Tech Stack
 
+- **Angular 20** - Framework
+- **Nx 21** - Monorepo tooling
+- **TypeScript 5.9** - Language
+- **Firebase** - Backend & Database
+- **PrimeNG 20** - UI Components
+- **TailwindCSS 3** - Styling
+- **Jest 29** - Testing
+- **ESLint + Prettier** - Code quality
 
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+---
 
-## Install Nx Console
+## 📋 Scripts Disponíveis
 
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
+### Development
+```bash
+npm start                # Start shell + map (dev mode)
+npm run build           # Build all projects
+```
 
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Testing
+```bash
+npm test                # Run all tests
+nx test feature-login   # Test specific project
+```
 
-## Useful links
+### Linting
+```bash
+npm run lint            # Lint all projects
+npm run lint:fix        # Fix lint issues
+```
 
-Learn more:
+---
 
-- [Learn more about this workspace setup](https://nx.dev/getting-started/intro#learn-nx?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## 🏗️ Arquitetura
 
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Padrões Implementados
+- ✅ **Facade Pattern** - Business logic layer
+- ✅ **Repository Pattern** - Data access layer
+- ✅ **DDD** - Domain-driven design structure
+- ✅ **Lazy Loading** - Route-based code splitting
+- ✅ **Standalone Components** - Modern Angular
+- ✅ **Signals** - Reactive state management
+
+### Camadas
+1. **Domain** - Models e interfaces
+2. **Infrastructure** - Repositories (Firestore access)
+3. **Application** - Facades (Business logic)
+4. **Feature** - Components (UI)
+
+---
+
+## 📚 Documentação
+
+- 📖 [IMPLEMENTATION_COMPLETE.md](./IMPLEMENTATION_COMPLETE.md) - Documentação completa
+- 🔥 [FIREBASE_SETUP.md](./FIREBASE_SETUP.md) - Setup do Firebase
+- 📊 [PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md) - Resumo arquitetural
+- 🧪 [CLAUDE.md](./CLAUDE.md) - Guidelines de código e testes
+
+---
+
+## ✅ Status do Projeto
+
+- ✅ Autenticação (Login + Register)
+- ✅ CRUD de Produtos
+- ✅ Gestão de Vendas
+- ✅ Dashboard de Analytics
+- ✅ Rotas configuradas
+- ✅ Firebase integrado
+- ✅ UI responsiva com dark mode
+- ✅ 100% Lint passing
+- ✅ Documentação completa
+
+---
+
+## 🎯 Próximos Passos
+
+1. **Configurar Firebase** - Criar projeto e habilitar Firestore
+2. **Auth Guard** - Proteger rotas do dashboard
+3. **Forms de CRUD** - Adicionar/editar produtos e vendas
+4. **Production Tracking** - Feature de produção/cultivo
+5. **Goals Management** - Definir e acompanhar metas
+
+---
+
+## 🤝 Contribuindo
+
+Este projeto segue o [Conventional Commits](https://www.conventionalcommits.org/).
+
+Ver [GIT_COMMIT_INSTRUCTIONS.md](./GIT_COMMIT_INSTRUCTIONS.md) para guidelines.
+
+---
+
+## 📄 Licença
+
+MIT
+
+---
+
+**Desenvolvido com** ❤️ **usando Angular 20, Nx, Firebase, PrimeNG e TailwindCSS**

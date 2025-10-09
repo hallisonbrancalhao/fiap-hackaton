@@ -1,0 +1,29 @@
+<div class="farm-map-container">
+  <div class="map-header">
+    <h2>Visualização da Fazenda</h2>
+    @if (loading$ | async) {
+      <span class="loading-indicator">Carregando...</span>
+    }
+  </div>
+
+  <lib-base-map [height]="'600px'" />
+
+  <div class="map-info">
+    @if (farmArea$ | async; as farmArea) {
+      <div class="info-card">
+        <h3>{{ farmArea.properties.farmName }}</h3>
+        <p>Área Total: {{ farmArea.properties.totalAreaHectares.toFixed(2) }} hectares</p>
+        <p>Proprietário: {{ farmArea.properties.ownerName }}</p>
+      </div>
+    }
+
+    @if (plantingPlots$ | async; as plots) {
+      @if (plots.length > 0) {
+        <div class="info-card">
+          <h3>Talhões de Plantio</h3>
+          <p>Total: {{ plots.length }} talhões</p>
+        </div>
+      }
+    }
+  </div>
+</div>

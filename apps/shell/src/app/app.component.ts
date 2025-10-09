@@ -1,10 +1,11 @@
 import { Component } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { HeaderComponent } from '@fiap-farm/ui-components';
 
 @Component({
-	imports: [RouterModule, HeaderComponent],
+	imports: [RouterModule],
 	selector: 'app-root',
-	template: ` <ui-header /> <router-outlet /> `
+	template: `
+		<router-outlet />
+	`
 })
 export class AppComponent {}

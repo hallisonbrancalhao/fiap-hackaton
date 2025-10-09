@@ -1,12 +1,4 @@
-import { Route } from '@angular/router';
+import { Routes } from '@angular/router';
+import { shellRoutes } from '@fiap-hackaton/shell-dashboard';
 
-export const appRoutes: Route[] = [
-  {
-    path: 'map',
-    loadChildren: () => import('map/Routes').then((m) => m.remoteRoutes),
-  },
-  {
-    path: '',
-    loadChildren: () => import('@fiap-farm/dashboard-shell').then((m) => m.dashboardRoutes),
-  },
-];
+export const appRoutes: Routes = shellRoutes;
