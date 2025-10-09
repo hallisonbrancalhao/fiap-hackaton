@@ -6,6 +6,7 @@ import { ProductionRepository } from '../infrastructure/production.repository';
 import { ProductRepository } from '../infrastructure/product.repository';
 import { GoalFacade } from './goal.facade';
 import { StockBatchFacade } from './stock-batch.facade';
+import { ProductFacade } from './product.facade';
 import { Timestamp } from '@angular/fire/firestore';
 
 @Injectable({
@@ -15,6 +16,7 @@ export class HarvestFacade {
   private harvestRepository = inject(HarvestRepository);
   private productionRepository = inject(ProductionRepository);
   private productRepository = inject(ProductRepository);
+  private productFacade = inject(ProductFacade);
   private goalFacade = inject(GoalFacade);
   private stockBatchFacade = inject(StockBatchFacade);
 
@@ -91,12 +93,9 @@ export class HarvestFacade {
           unit: product.unit,
           productionCost: production.totalCost || 0,
           harvestCost: harvest.harvestCost || 0,
-          processingCost: 0, // Pode ser adicionado depois
+          processingCost: 0,
           quality: harvest.quality,
-          grade: undefined, // Pode ser definido depois
           harvestDate: harvest.harvestDate,
-          expirationDate: undefined, // Pode ser definido depois via UI
-          warehouseLocation: undefined,
           certifications: [],
           notes: harvest.notes
         };
@@ -107,7 +106,34 @@ export class HarvestFacade {
           production: of(production)
         });
       }),
-      switchMap(({ harvestId }) => {
+      switchMap(({ harvestId, production }) => {
+        // Buscar produto atual para atualizar estoque
+        return this.productRepository.getById(harvest.productId).pipe(
+          switchMap(product => {
+            if (!product) {
+              throw new Error('Product not found for stock update');
+            }
+
+            const newCurrentStock = (product.currentStock || 0) + harvest.quantityHarvested;
+            const newAverageCost = this.calculateNewAverageCost(
+              product.currentStock || 0,
+              product.averageCost || 0,
+              harvest.quantityHarvested,
+              (production.totalCost || 0) + (harvest.harvestCost || 0)
+            );
+
+            // Atualizar produto com novo estoque e custo médio
+            return this.productFacade.update(harvest.productId, {
+              currentStock: newCurrentStock,
+              averageCost: newAverageCost,
+              updatedAt: Timestamp.now()
+            }).pipe(
+              map(() => harvestId)
+            );
+          })
+        );
+      }),
+      switchMap((harvestId) => {
         // Atualizar status da produção para HARVESTED
         return this.productionRepository.update(harvest.productionId, {
           status: PRODUCTION_STATUS.HARVESTED,
@@ -122,14 +148,33 @@ export class HarvestFacade {
           map(() => harvestId)
         );
       }),
-      catchError(() => {
-        throw new Error('Error performing harvest');
+      catchError((error) => {
+        throw error;
       })
     );
   }
 
   /**
-   * Calcula o custo médio ponderado do estoque
+   * Calcula o novo custo médio ponderado do estoque
+   */
+  private calculateNewAverageCost(
+    currentStock: number,
+    currentAvgCost: number,
+    newQuantity: number,
+    totalNewCost: number
+  ): number {
+    if (currentStock === 0 && newQuantity === 0) return 0;
+    if (currentStock === 0) return totalNewCost / newQuantity;
+
+    const currentValue = currentStock * currentAvgCost;
+    const newValue = totalNewCost;
+    const totalStock = currentStock + newQuantity;
+
+    return totalStock > 0 ? (currentValue + newValue) / totalStock : 0;
+  }
+
+  /**
+   * Calcula o custo médio ponderado do estoque (método legado)
    */
   private calculateAverageCost(
     currentStock: number,

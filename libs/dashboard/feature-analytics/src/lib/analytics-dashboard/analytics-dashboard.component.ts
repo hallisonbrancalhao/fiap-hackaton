@@ -185,8 +185,7 @@ export class AnalyticsDashboardComponent implements OnInit {
         this.analytics.set(analytics);
         this.isLoading.set(false);
       },
-      error: (err) => {
-				console.log('Error loading analytics', err);
+      error: () => {
         this.isLoading.set(false);
       },
     });

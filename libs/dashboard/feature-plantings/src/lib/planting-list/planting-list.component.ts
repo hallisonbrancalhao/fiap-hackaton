@@ -197,8 +197,7 @@ export class PlantingListComponent implements OnInit {
         );
         this.loading.set(false);
       },
-      error: (err) => {
-        console.error('Erro ao carregar plantios:', err);
+      error: () => {
         this.error.set('Erro ao carregar plantios. Tente novamente.');
         this.loading.set(false);
       }
@@ -267,8 +266,7 @@ export class PlantingListComponent implements OnInit {
       next: () => {
         this.loadPlantings();
       },
-      error: (err) => {
-        console.error('Erro ao cancelar plantio:', err);
+      error: () => {
         alert('Erro ao cancelar plantio. Tente novamente.');
       }
     });

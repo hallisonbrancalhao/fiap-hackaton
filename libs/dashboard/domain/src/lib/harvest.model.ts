@@ -22,10 +22,7 @@ export interface Harvest {
   
   // Qualidade
   quality: HARVEST_QUALITY;
-  gradeA?: number; // Quantidade de qualidade A
-  gradeB?: number; // Quantidade de qualidade B
-  gradeC?: number; // Quantidade de qualidade C
-  
+
   // Datas
   harvestDate: Timestamp;
   harvestStartTime?: string; // Hora de início da colheita

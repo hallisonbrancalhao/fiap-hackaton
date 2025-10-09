@@ -44,7 +44,6 @@ export class StockBatchFacade {
       productionId: input.productionId,
       harvestId: input.harvestId,
       batchNumber,
-      externalLotCode: undefined,
       initialQuantity: input.quantity,
       currentQuantity: input.quantity,
       reservedQuantity: 0,
@@ -58,18 +57,16 @@ export class StockBatchFacade {
       processingCost: input.processingCost || 0,
       storageCost: 0,
       quality: input.quality,
-      grade: input.grade,
       harvestDate: input.harvestDate,
-      expirationDate: input.expirationDate,
       receivedDate: Timestamp.now(),
       status: BATCH_STATUS.AVAILABLE,
-      warehouseLocation: input.warehouseLocation,
-      shelfPosition: undefined,
       certifications: input.certifications || [],
-      inspectionResults: undefined,
-      notes: input.notes,
       createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now()
+      updatedAt: Timestamp.now(),
+      ...(input.grade && { grade: input.grade }),
+      ...(input.expirationDate && { expirationDate: input.expirationDate }),
+      ...(input.warehouseLocation && { warehouseLocation: input.warehouseLocation }),
+      ...(input.notes && { notes: input.notes })
     };
 
     return this.repository.create(batch);

@@ -346,8 +346,7 @@ export class PlantingFormComponent implements OnInit {
           this.error.set('Você precisa cadastrar produtos antes de criar um plantio.');
         }
       },
-      error: (err) => {
-        console.error('Erro ao carregar produtos:', err);
+      error: () => {
         this.error.set('Erro ao carregar produtos. Tente novamente.');
       }
     });
@@ -415,8 +414,7 @@ export class PlantingFormComponent implements OnInit {
       next: () => {
         this.router.navigate(['/dashboard/plantings']);
       },
-      error: (err) => {
-        console.error('Erro ao registrar plantio:', err);
+      error: () => {
         this.error.set('Erro ao registrar plantio. Tente novamente.');
         this.submitting.set(false);
       }

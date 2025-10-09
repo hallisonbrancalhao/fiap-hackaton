@@ -37,7 +37,7 @@ export default [
 			'**/*.mjs',
 		],
 		rules: {
-			'no-console': 'warn',
+			'no-console': 'error',
 			'no-debugger': 'error',
 			'object-curly-spacing': ['error', 'always'],
 			'keyword-spacing': ['error', { before: true, after: true }],

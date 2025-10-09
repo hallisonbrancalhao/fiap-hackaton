@@ -129,8 +129,7 @@ export class HubComponent implements AfterViewInit {
         this.isLoadingStats.set(false);
         this.isLoadingPlantings.set(false);
       },
-      error: (err) => {
-				console.log(err);
+      error: () => {
         this.isLoadingStats.set(false);
         this.isLoadingPlantings.set(false);
       },
