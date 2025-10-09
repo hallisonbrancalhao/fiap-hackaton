@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy, signal } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, signal, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -7,11 +7,16 @@ import { Product } from '@fiap-hackaton/dashboard-domain';
 import { ProductionFacade, ProductFacade, PlantingInput } from '@fiap-hackaton/dashboard-data-access';
 import { AuthLoginFacade } from '@fiap-hackaton/auth-data-access';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { PlantingAreaSelectorComponent, PlantingAreaSelection } from '@fiap-hackaton/map-ui';
+import { FarmAreaFacade, FarmAreaRepository, ProductionAreaFacade, ProductionAreaRepository } from '@fiap-hackaton/data-access';
+import { GeoCoordinate } from '@fiap-hackaton/domain';
+import { Subject, takeUntil, switchMap } from 'rxjs';
 
 @Component({
   selector: 'lib-planting-form',
-  imports: [CommonModule, ReactiveFormsModule,InputNumberModule],
+  imports: [CommonModule, ReactiveFormsModule, InputNumberModule, PlantingAreaSelectorComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [FarmAreaRepository, FarmAreaFacade, ProductionAreaRepository, ProductionAreaFacade],
   template: `
     <div class="container mx-auto px-4 py-6 max-w-4xl">
       <div class="mb-6">
@@ -49,6 +54,14 @@ import { InputNumberModule } from 'primeng/inputnumber';
             <p class="text-red-600 text-sm mt-1">Selecione um produto</p>
           }
         </div>
+
+        @if (form.get('productId')?.value) {
+          <div class="mb-6">
+            <lib-planting-area-selector
+              [farmAreaCoordinates]="farmAreaCoordinates()"
+              (areaSelected)="onAreaSelected($event)" />
+          </div>
+        }
 
         <!-- Quantidade e Data -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -170,15 +183,22 @@ import { InputNumberModule } from 'primeng/inputnumber';
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-2">
-                Área Plantada
+                Área Plantada (hectares)
               </label>
               <input
                 type="number"
                 formControlName="areaPlanted"
                 min="0"
                 step="0.01"
+                [readonly]="areaFromMap()"
                 class="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                [class.bg-gray-100]="areaFromMap()"
                 placeholder="Ex: 2.5" />
+              @if (areaFromMap()) {
+                <p class="text-xs text-green-600 mt-1">
+                  ✓ Calculado automaticamente do mapa
+                </p>
+              }
             </div>
 
             <div>
@@ -286,16 +306,22 @@ import { InputNumberModule } from 'primeng/inputnumber';
     </div>
   `,
 })
-export class PlantingFormComponent implements OnInit {
+export class PlantingFormComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private productionFacade = inject(ProductionFacade);
   private productFacade = inject(ProductFacade);
   private authFacade = inject(AuthLoginFacade);
+  private farmAreaFacade = inject(FarmAreaFacade);
+  private productionAreaFacade = inject(ProductionAreaFacade);
+  private destroy$ = new Subject<void>();
 
   products = signal<Product[]>([]);
   submitting = signal(false);
   error = signal<string | null>(null);
+  farmAreaCoordinates = signal<GeoCoordinate[]>([]);
+  areaFromMap = signal(false);
+  selectedPlantingArea = signal<PlantingAreaSelection | null>(null);
 
   form: FormGroup;
   minHarvestDate: string;
@@ -327,6 +353,45 @@ export class PlantingFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadProducts();
+    this.loadFarmArea();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private loadFarmArea(): void {
+    const currentUser = this.authFacade.currentUser();
+    if (!currentUser?.id) return;
+
+    this.farmAreaFacade.loadFarmAreaByUserId(currentUser.id);
+
+    this.farmAreaFacade.farmArea$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(farmArea => {
+      if (farmArea?.coordinates) {
+        this.farmAreaCoordinates.set(farmArea.coordinates);
+      }
+    });
+  }
+
+  protected onAreaSelected(selection: PlantingAreaSelection): void {
+    this.selectedPlantingArea.set(selection);
+    this.areaFromMap.set(true);
+
+    this.form.patchValue({
+      areaPlanted: selection.areaHectares,
+      areaUnit: 'hectare'
+    });
+
+    const quantity = this.form.get('quantityPlanted')?.value;
+    if (quantity) {
+      const densityPerHectare = quantity / selection.areaHectares;
+      this.form.patchValue({
+        expectedYieldPerArea: densityPerHectare
+      });
+    }
   }
 
   private loadProducts(): void {
@@ -388,8 +453,9 @@ export class PlantingFormComponent implements OnInit {
     const harvestDate = new Date(values.expectedHarvestDate);
     harvestDate.setHours(23, 59, 59, 999);
 
+    // Non-null assertion safe due to guard clause above
     const plantingInput: PlantingInput = {
-      userId: currentUser.id,
+      userId: currentUser.id!,
       productId: values.productId,
       quantityPlanted: values.quantityPlanted,
       expectedHarvestDate: Timestamp.fromDate(harvestDate),
@@ -407,7 +473,31 @@ export class PlantingFormComponent implements OnInit {
       ...(values.notes?.trim() && { notes: values.notes.trim() }),
     };
 
-    this.productionFacade.registerPlanting(plantingInput).subscribe({
+    this.productionFacade.registerPlanting(plantingInput).pipe(
+      switchMap((productionId) => {
+        // Se há área selecionada no mapa, criar ProductionArea
+        const selectedArea = this.selectedPlantingArea();
+        if (selectedArea && selectedArea.coordinates.length >= 3 && currentUser.id) {
+          const selectedProduct = this.products().find(p => p.id === values.productId);
+
+          // Non-null assertion safe - currentUser.id validated above
+          return this.productionAreaFacade.createProductionArea({
+            userId: currentUser.id!,
+            productionId: productionId,
+            productName: selectedProduct?.name || 'Produto',
+            coordinates: selectedArea.coordinates,
+            plantingDate: new Date().toISOString(),
+            expectedHarvestDate: harvestDate.toISOString(),
+            quantityPlanted: values.quantityPlanted,
+            unit: selectedProduct?.unit,
+            color: '#10B981',
+            fillColor: '#10B981'
+          });
+        }
+        // Se não há área no mapa, retornar observable vazio (sucesso)
+        return new Promise<void>((resolve) => resolve());
+      })
+    ).subscribe({
       next: () => {
         this.router.navigate(['/dashboard/plantings']);
       },

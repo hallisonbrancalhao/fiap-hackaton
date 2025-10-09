@@ -55,4 +55,8 @@ export const shellRoutes: Routes = [
       },
     ]
   },
+  {
+    path: 'mobile/map',
+    loadChildren: () => import('@fiap-hackaton/shell-map').then(m => m.mobileMapRoutes),
+  },
 ];
