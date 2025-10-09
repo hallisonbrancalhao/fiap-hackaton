@@ -47,6 +47,6 @@ export class HeaderComponent {
 
   protected onLogout(): void {
     this.authFacade.logout();
-    this.router.navigate(['/login']);
+    this.router.navigate(['/auth/login']);
   }
 }
