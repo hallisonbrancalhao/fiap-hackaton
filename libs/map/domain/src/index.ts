@@ -6,3 +6,6 @@ export * from './lib/farm-area.model';
 
 // Planting Plot models
 export * from './lib/planting-plot.model';
+
+// Production Area models
+export * from './lib/production-area.model';

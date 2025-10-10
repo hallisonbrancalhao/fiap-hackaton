@@ -28,6 +28,15 @@ interface DashboardCard {
 export class HubComponent implements AfterViewInit {
   protected readonly dashboardCards: DashboardCard[] = [
     {
+      id: 'map',
+      title: 'Mapa da Fazenda',
+      description: 'Visualize e gerencie as áreas da sua fazenda',
+      icon: 'pi pi-map-marker',
+      route: '/map',
+      gradient: 'bg-gradient-to-br from-purple-50 to-purple-100',
+      iconColor: 'text-purple-600',
+    },
+    {
       id: 'products',
       title: 'Produtos',
       description: 'Gerencie o catálogo completo de produtos da sua fazenda',
@@ -78,7 +87,14 @@ export class HubComponent implements AfterViewInit {
   }
 
   protected navigateTo(path: string): void {
-    this.router.navigate([path]);
+    if (path === '/map') {
+      const userId = this.authFacade.currentUser()?.id;
+      if (userId) {
+        this.router.navigate(['/map', userId]);
+      }
+    } else {
+      this.router.navigate([path]);
+    }
   }
 
   protected refreshStats(): void {

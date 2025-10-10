@@ -24,6 +24,11 @@ export class HeaderComponent {
       routerLink: '/dashboard'
     },
     {
+      label: 'Mapa',
+      icon: 'pi pi-map',
+      command: () => this.navigateToMap()
+    },
+    {
       label: 'Produtos',
       icon: 'pi pi-box',
       routerLink: '/dashboard/products'
@@ -44,6 +49,13 @@ export class HeaderComponent {
       routerLink: '/dashboard/sales'
     }
   ]);
+
+  protected navigateToMap(): void {
+    const userId = this.currentUser()?.id;
+    if (userId) {
+      this.router.navigate(['/map', userId]);
+    }
+  }
 
   protected onLogout(): void {
     this.authFacade.logout();

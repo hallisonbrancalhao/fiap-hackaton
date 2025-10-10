@@ -106,7 +106,7 @@ import { AuthLoginFacade } from '@fiap-hackaton/auth-data-access';
               }
 
               <!-- Informações -->
-              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+              <div class="grid grid-cols-2 md:grid-cols-5 gap-5 text-sm">
                 <div>
                   <p class="text-gray-500">Data de Plantio</p>
                   <p class="font-medium">{{ formatDate(planting.plantingDate) }}</p>
@@ -121,6 +121,10 @@ import { AuthLoginFacade } from '@fiap-hackaton/auth-data-access';
                     <p class="font-medium">{{ planting.areaPlanted }} {{ planting.areaUnit }}</p>
                   </div>
                 }
+                <div>
+                  <p class="text-gray-500">Quantidade Esperada</p>
+                  <p class="font-medium">{{ planting.quantityPlanted }} {{ planting.unit }}/{{ planting.areaUnit }}</p>
+                </div>
                 <div>
                   <p class="text-gray-500">Custo Total</p>
                   <p class="font-medium">{{ formatCurrency(planting.totalCost) }}</p>
