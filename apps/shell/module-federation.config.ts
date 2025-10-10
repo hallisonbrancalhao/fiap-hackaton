@@ -14,7 +14,9 @@ const config: ModuleFederationConfig = {
    * declare module 'my-external-remote';
    *
    */
-  remotes: ['map'],
+  remotes: [
+    ['map', 'https://develop.d3voex5v3mawse.amplifyapp.com']
+  ],
 };
 
 /**
