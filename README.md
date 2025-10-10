@@ -30,6 +30,7 @@ Suporta **Web** e **Mobile** (via WebView) com comunicação bidirecional para f
 ## Links
 - shell: https://develop.d3b4jnj5jq9l80.amplifyapp.com/
 - mapa: https://develop.d3voex5v3mawse.amplifyapp.com/
+- vídeo de apresentação: https://youtu.be/Uun0B2BLQPg
 
 ## ✨ Features
 
