@@ -434,24 +434,24 @@ export class BatchAnalyticsFacade {
    * Remove campos undefined de um objeto recursivamente
    * Necessário para evitar erros do Firestore com campos undefined
    */
-  private removeUndefinedFields(obj: any): any {
+  private removeUndefinedFields<T>(obj: T): T {
     if (obj === null || obj === undefined) {
       return obj;
     }
 
     if (Array.isArray(obj)) {
-      return obj.map(item => this.removeUndefinedFields(item));
+      return obj.map(item => this.removeUndefinedFields(item)) as T;
     }
 
     if (typeof obj === 'object' && !(obj instanceof Timestamp) && !(obj instanceof Date)) {
-      const cleaned: any = {};
-      Object.keys(obj).forEach(key => {
-        const value = obj[key];
+      const cleaned: Record<string, unknown> = {};
+      Object.keys(obj as object).forEach(key => {
+        const value = (obj as Record<string, unknown>)[key];
         if (value !== undefined) {
           cleaned[key] = this.removeUndefinedFields(value);
         }
       });
-      return cleaned;
+      return cleaned as T;
     }
 
     return obj;

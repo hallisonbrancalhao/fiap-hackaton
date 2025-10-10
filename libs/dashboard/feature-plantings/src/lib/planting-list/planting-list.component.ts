@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, ChangeDetectionStrategy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { Timestamp } from '@angular/fire/firestore';
 import { Production, PRODUCTION_STATUS, calculatePlantingProgress, getDaysUntilHarvest } from '@fiap-hackaton/dashboard-domain';
 import { ProductionFacade } from '@fiap-hackaton/dashboard-data-access';
 import { AuthLoginFacade } from '@fiap-hackaton/auth-data-access';
@@ -241,7 +242,7 @@ export class PlantingListComponent implements OnInit {
     return `${baseClasses} ${statusClasses[status]}`;
   }
 
-  formatDate(timestamp: any): string {
+  formatDate(timestamp: Timestamp): string {
     return timestamp.toDate().toLocaleDateString('pt-BR');
   }
 

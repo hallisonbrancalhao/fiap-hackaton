@@ -337,7 +337,7 @@ export class SaleFormComponent implements OnInit {
       return;
     }
 
-    const currentUser = this.authFacade.currentUser() as any;
+    const currentUser = this.authFacade.currentUser() as { id?: string } | null;
     if (!currentUser?.id) {
       this.toastService.error('Usuário não autenticado');
       return;
@@ -375,7 +375,7 @@ export class SaleFormComponent implements OnInit {
   }
 
   private loadProducts(): void {
-    const currentUser = this.authFacade.currentUser() as any;
+    const currentUser = this.authFacade.currentUser() as { id?: string } | null;
     if (!currentUser?.id) {
       return;
     }

@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal, AfterViewInit, DestroyRef } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { Router } from '@angular/router';
+import { Timestamp } from '@angular/fire/firestore';
 import { ButtonModule } from 'primeng/button';
 import { CardComponent, LoadingComponent } from '@fiap-hackaton/shared-ui';
 import { HubFacade, DashboardStats, ProductionFacade } from '@fiap-hackaton/dashboard-data-access';
@@ -113,7 +114,7 @@ export class HubComponent implements AfterViewInit {
     return `${days} dias restantes`;
   }
 
-  protected formatDate(timestamp: any): string {
+  protected formatDate(timestamp: Timestamp): string {
     return timestamp.toDate().toLocaleDateString('pt-BR');
   }
 
