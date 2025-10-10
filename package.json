@@ -6,8 +6,8 @@
 		"ng": "nx",
 		"start": "nx serve shell --open --devRemotes=map",
 		"build": "nx run-many --target=build --all",
-		"build:map:prod": "nx run map:build:prod",
-		"build:shell:prod": "nx run shell:build:prod",
+    "build:map:prod": "nx run map:build:prod",
+    "build:shell:prod": "nx run shell:build:prod",
 		"lint": "nx run-many --target=lint --all",
 		"eslint": "eslint . --ext .ts,.tsx,.js,.jsx --max-warnings=0",
 		"lint:fix": "nx run-many --target=lint --all --fix",
@@ -66,8 +66,7 @@
 		"ts-node": "10.9.1",
 		"tslib": "^2.3.0",
 		"typescript": "~5.9.2",
-		"typescript-eslint": "^8.40.0",
-		"undici": "^7.16.0"
+		"typescript-eslint": "^8.40.0"
 	},
 	"dependencies": {
 		"@angular/animations": "~20.2.0",
