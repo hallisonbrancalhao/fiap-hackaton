@@ -162,23 +162,22 @@ import { DatePickerModule } from 'primeng/datepicker';
                   </div>
 
                   <!-- Total -->
-                  <div class="flex flex-col justify-end">
-                    <span class="font-medium block mb-2">Total da Venda</span>
-                    <div class="p-3 bg-primary-50 rounded border border-primary-200">
-                      <p class="text-2xl font-bold text-primary-700">{{ totalAmount() | currency:'BRL' }}</p>
-                      @if (profit() !== null) {
-                        <small
-                          [class.text-green-600]="profit()! > 0"
-                          [class.text-red-600]="profit()! < 0"
-                          [class.font-semibold]="true">
-                          {{ profit()! >= 0 ? '📈' : '📉' }} Lucro: {{ profit() | currency:'BRL' }}
-                        </small>
-                      }
-                    </div>
+               <div class="flex flex-col justify-end">
+                <span class="font-medium block mb-2">Total da Venda</span>
+                 <div class="p-3 bg-primary-50 rounded border border-primary-200">
+                    <p class="text-2xl font-bold text-primary-700">{{ totalAmount | currency:'BRL' }}</p>
+                    <small *ngIf="profit !== null" [ngClass]="{
+                      'text-green-600': profit > 0,
+                      'text-red-600': profit < 0,
+                      'font-semibold': true
+                      }">
+                     {{ profit! >= 0 ? '📈' : '📉' }} Lucro: {{ profit | currency:'BRL' }}
+                    </small>
                   </div>
                 </div>
-              }
-            </div>
+              </div>
+            }
+         </div>
 
             <!-- Notes -->
             <div class="flex flex-col gap-2">
@@ -238,13 +237,14 @@ export class SaleFormComponent implements OnInit {
     return this.productOptions().find(p => p.id === productId) || null;
   });
 
-  protected totalAmount = computed(() => {
+  get totalAmount(): number {
     const quantity = this.saleForm.get('quantity')?.value || 0;
     const pricePerUnit = this.saleForm.get('pricePerUnit')?.value || 0;
     return quantity * pricePerUnit;
-  });
+  }
 
-  protected profit = computed(() => {
+
+  get profit(): number | null {
     const product = this.selectedProduct();
     if (!product) return null;
 
@@ -253,7 +253,7 @@ export class SaleFormComponent implements OnInit {
     const costPerUnit = product.averageCost || 0;
 
     return (pricePerUnit - costPerUnit) * quantity;
-  });
+  }
 
   constructor() {
     this.saleForm = this.fb.group({
