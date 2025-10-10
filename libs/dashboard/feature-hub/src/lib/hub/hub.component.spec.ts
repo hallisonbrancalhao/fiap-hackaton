@@ -5,26 +5,27 @@ import { By } from '@angular/platform-browser';
 import { of, throwError } from 'rxjs';
 import { HubComponent } from './hub.component';
 
-// Mock the HubFacade to avoid Firebase imports
-jest.mock('@fiap-hackaton/dashboard-data-access', () => ({
-  HubFacade: jest.fn().mockImplementation(() => ({
-    getDashboardStats: jest.fn(),
-  })),
-  DashboardStats: {},
-}));
-
-import { HubFacade, DashboardStats } from '@fiap-hackaton/dashboard-data-access';
+import { HubFacade, DashboardStats, ProductionFacade } from '@fiap-hackaton/dashboard-data-access';
+import { AuthLoginFacade } from '@fiap-hackaton/auth-data-access';
 
 describe('HubComponent', () => {
   let fixture: ComponentFixture<HubComponent>;
   let mockRouter: jest.Mocked<Router>;
   let mockHubFacade: jest.Mocked<HubFacade>;
+  let mockProductionFacade: jest.Mocked<ProductionFacade>;
+  let mockAuthFacade: jest.Mocked<AuthLoginFacade>;
 
   const mockStats: DashboardStats = {
     totalProducts: 42,
     totalSales: 150,
     monthlyRevenue: 125000,
     recentSalesCount: 23,
+  };
+
+  const mockUser = {
+    id: 'user123',
+    email: 'test@example.com',
+    displayName: 'Test User'
   };
 
   beforeEach(async () => {
@@ -36,12 +37,22 @@ describe('HubComponent', () => {
       getDashboardStats: jest.fn(),
     } as unknown as jest.Mocked<HubFacade>;
 
+    mockProductionFacade = {
+      getByStatus: jest.fn().mockReturnValue(of([])),
+    } as unknown as jest.Mocked<ProductionFacade>;
+
+    mockAuthFacade = {
+      currentUser: jest.fn().mockReturnValue(mockUser),
+    } as unknown as jest.Mocked<AuthLoginFacade>;
+
     await TestBed.configureTestingModule({
       imports: [HubComponent],
       schemas: [NO_ERRORS_SCHEMA, CUSTOM_ELEMENTS_SCHEMA],
       providers: [
         { provide: Router, useValue: mockRouter },
         { provide: HubFacade, useValue: mockHubFacade },
+        { provide: ProductionFacade, useValue: mockProductionFacade },
+        { provide: AuthLoginFacade, useValue: mockAuthFacade },
       ],
     }).compileComponents();
 
@@ -65,12 +76,16 @@ describe('HubComponent', () => {
       // So we just verify the component works correctly
     });
 
-    it('should load dashboard stats on init', () => {
+    it('should load dashboard stats on init', (done) => {
       mockHubFacade.getDashboardStats.mockReturnValue(of(mockStats));
 
-      fixture.detectChanges();
+      fixture.detectChanges(); // Triggers ngAfterViewInit
 
-      expect(mockHubFacade.getDashboardStats).toHaveBeenCalledWith('fiap-farms-3e501');
+      // ngAfterViewInit uses setTimeout, so we need to wait
+      setTimeout(() => {
+        expect(mockHubFacade.getDashboardStats).toHaveBeenCalledWith('user123');
+        done();
+      }, 10);
     });
   });
 
@@ -148,47 +163,64 @@ describe('HubComponent', () => {
 
     it('should render all dashboard cards', () => {
       const cards = fixture.debugElement.queryAll(By.css('[role="button"]'));
-      expect(cards.length).toBeGreaterThanOrEqual(3);
+      expect(cards.length).toBeGreaterThanOrEqual(4); // map, products, plantings, sales
+    });
+
+    it('should navigate to map page when map card is clicked', () => {
+      const mapCard = fixture.debugElement.query(By.css('[data-testid="card-map"]'));
+
+      mapCard.triggerEventHandler('click', null);
+
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/map', 'user123']);
     });
 
     it('should navigate to products page when products card is clicked', () => {
-      const productsCard = fixture.debugElement.query(By.css('[data-testid="products-card"]'));
-      
+      const productsCard = fixture.debugElement.query(By.css('[data-testid="card-products"]'));
+
       productsCard.triggerEventHandler('click', null);
 
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/dashboard/products']);
     });
 
+    it('should navigate to plantings page when plantings card is clicked', () => {
+      const plantingsCard = fixture.debugElement.query(By.css('[data-testid="card-plantings"]'));
+
+      plantingsCard.triggerEventHandler('click', null);
+
+      expect(mockRouter.navigate).toHaveBeenCalledWith(['/dashboard/plantings']);
+    });
+
     it('should navigate to sales page when sales card is clicked', () => {
-      const salesCard = fixture.debugElement.query(By.css('[data-testid="sales-card"]'));
-      
+      const salesCard = fixture.debugElement.query(By.css('[data-testid="card-sales"]'));
+
       salesCard.triggerEventHandler('click', null);
 
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/dashboard/sales']);
     });
 
-    it('should navigate to analytics page when analytics card is clicked', () => {
-      const analyticsCard = fixture.debugElement.query(By.css('[data-testid="analytics-card"]'));
-      
-      analyticsCard.triggerEventHandler('click', null);
-
-      expect(mockRouter.navigate).toHaveBeenCalledWith(['/dashboard/analytics']);
-    });
-
     it('should navigate when Enter key is pressed on card', () => {
-      const productsCard = fixture.debugElement.query(By.css('[data-testid="products-card"]'));
-      
+      const productsCard = fixture.debugElement.query(By.css('[data-testid="card-products"]'));
+
       productsCard.triggerEventHandler('keyup.enter', null);
 
       expect(mockRouter.navigate).toHaveBeenCalledWith(['/dashboard/products']);
     });
 
-    it('should refresh stats when refresh button is clicked', () => {
+    it('should refresh stats when refresh button is clicked', (done) => {
       const refreshButton = fixture.debugElement.query(By.css('[data-testid="refresh-button"]'));
-      
-      refreshButton.triggerEventHandler('onClick', null);
 
-      expect(mockHubFacade.getDashboardStats).toHaveBeenCalledTimes(2); // Once on init, once on refresh
+      // Wait for initial load
+      setTimeout(() => {
+        const initialCalls = mockHubFacade.getDashboardStats.mock.calls.length;
+
+        refreshButton.triggerEventHandler('onClick', null);
+
+        // Wait for refresh
+        setTimeout(() => {
+          expect(mockHubFacade.getDashboardStats.mock.calls.length).toBeGreaterThan(initialCalls);
+          done();
+        }, 10);
+      }, 10);
     });
   });
 
@@ -205,7 +237,7 @@ describe('HubComponent', () => {
 
     it('should display welcome message', () => {
       const welcomeText = fixture.nativeElement.textContent;
-      expect(welcomeText).toContain('Bem-vindo ao FIAP FARM');
+      expect(welcomeText).toContain('FIAP FARM - Central de Gestão Inteligente');
     });
 
     it('should render refresh button', () => {
@@ -214,8 +246,8 @@ describe('HubComponent', () => {
     });
 
     it('should have proper accessibility attributes on navigation cards', () => {
-      const productsCard = fixture.debugElement.query(By.css('[data-testid="products-card"]'));
-      
+      const productsCard = fixture.debugElement.query(By.css('[data-testid="card-products"]'));
+
       expect(productsCard.attributes['tabindex']).toBe('0');
       expect(productsCard.attributes['role']).toBe('button');
       expect(productsCard.attributes['aria-label']).toContain('Navegar para Produtos');
