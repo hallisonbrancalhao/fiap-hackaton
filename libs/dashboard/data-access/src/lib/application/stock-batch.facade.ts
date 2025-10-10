@@ -97,11 +97,15 @@ export class StockBatchFacade {
             return throwError(() => new Error(`Batch ${allocation.batchId} not found`));
           }
 
+          if (!batch.id) {
+            return throwError(() => new Error(`Batch ID not found`));
+          }
+
           const newCurrentQuantity = batch.currentQuantity - allocation.quantityAllocated;
           const newSoldQuantity = batch.soldQuantity + allocation.quantityAllocated;
           const newStatus = newCurrentQuantity <= 0 ? BATCH_STATUS.SOLD_OUT : batch.status;
 
-          return this.repository.update(batch.id!, {
+          return this.repository.update(batch.id, {
             currentQuantity: newCurrentQuantity,
             soldQuantity: newSoldQuantity,
             status: newStatus,
@@ -125,12 +129,16 @@ export class StockBatchFacade {
             return throwError(() => new Error(`Batch ${allocation.batchId} not found`));
           }
 
+          if (!batch.id) {
+            return throwError(() => new Error(`Batch ID not found`));
+          }
+
           const newReservedQuantity = batch.reservedQuantity + allocation.quantityAllocated;
           const newStatus = batch.currentQuantity - newReservedQuantity <= 0
             ? BATCH_STATUS.RESERVED
             : batch.status;
 
-          return this.repository.update(batch.id!, {
+          return this.repository.update(batch.id, {
             reservedQuantity: newReservedQuantity,
             status: newStatus,
             updatedAt: Timestamp.now()
@@ -153,12 +161,16 @@ export class StockBatchFacade {
             return throwError(() => new Error(`Batch ${allocation.batchId} not found`));
           }
 
+          if (!batch.id) {
+            return throwError(() => new Error(`Batch ID not found`));
+          }
+
           const newReservedQuantity = Math.max(0, batch.reservedQuantity - allocation.quantityAllocated);
           const newStatus = batch.currentQuantity > 0
             ? BATCH_STATUS.AVAILABLE
             : batch.status;
 
-          return this.repository.update(batch.id!, {
+          return this.repository.update(batch.id, {
             reservedQuantity: newReservedQuantity,
             status: newStatus,
             updatedAt: Timestamp.now()
@@ -186,11 +198,15 @@ export class StockBatchFacade {
           ? BATCH_STATUS.DAMAGED
           : batch.status;
 
+        if (!batch.id) {
+          return throwError(() => new Error(`Batch ID not found`));
+        }
+
         const notes = batch.notes
           ? `${batch.notes}\n[${new Date().toISOString()}] Loss: ${lostQuantity} - ${reason}`
           : `[${new Date().toISOString()}] Loss: ${lostQuantity} - ${reason}`;
 
-        return this.repository.update(batch.id!, {
+        return this.repository.update(batch.id, {
           currentQuantity: newCurrentQuantity,
           lostQuantity: newLostQuantity,
           status: newStatus,
@@ -212,7 +228,10 @@ export class StockBatchFacade {
         }
 
         const updates = batches.map(batch => {
-          return this.repository.update(batch.id!, {
+          if (!batch.id) {
+            return throwError(() => new Error(`Batch ID not found`));
+          }
+          return this.repository.update(batch.id, {
             status: BATCH_STATUS.EXPIRED,
             updatedAt: Timestamp.now()
           });
@@ -355,11 +374,15 @@ export class StockBatchFacade {
       if (remainingQuantity <= 0) break;
       if (!isBatchAvailable(batch)) continue;
 
+      if (!batch.id) {
+        continue; // Skip batches without ID
+      }
+
       const quantityToAllocate = Math.min(batch.currentQuantity, remainingQuantity);
       const allocationCost = quantityToAllocate * batch.averageCostPerUnit;
 
       allocations.push({
-        batchId: batch.id!,
+        batchId: batch.id,
         batchNumber: batch.batchNumber,
         quantityAllocated: quantityToAllocate,
         costPerUnit: batch.averageCostPerUnit,

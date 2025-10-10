@@ -77,7 +77,10 @@ export class SaleFacade {
 
         // Construir itens da venda
         const saleItems: SaleItem[] = input.items.map((item, index) => {
-          const product = products[index]!;
+          const product = products[index];
+          if (!product) {
+            throw new Error(`Produto não encontrado para o item ${index + 1}`);
+          }
           const pricePerUnit = item.pricePerUnit || product.pricePerUnit;
           const costPerUnit = product.averageCost || 0;
           const quantity = item.quantity;
@@ -105,7 +108,7 @@ export class SaleFacade {
         const profitMargin = totalAmount > 0 ? (totalProfit / totalAmount) * 100 : 0;
 
         // Criar objeto de venda limpo
-        const saleData: any = {
+        const saleData: Partial<Sale> = {
           userId: input.userId,
           items: saleItems,
           totalAmount,
@@ -140,7 +143,10 @@ export class SaleFacade {
           switchMap(saleId => {
             // Atualizar estoque dos produtos (simples decrement)
             const stockUpdates = input.items.map((item, index) => {
-              const product = products[index]!;
+              const product = products[index];
+              if (!product) {
+                throw new Error(`Produto não encontrado para atualização de estoque`);
+              }
               const newStock = (product.currentStock || 0) - item.quantity;
 
               return this.productRepository.update(item.productId, {
@@ -254,7 +260,11 @@ export class SaleFacade {
         for (let i = 0; i < allocationResults.length; i++) {
           const result = allocationResults[i];
           const item = input.items[i];
-          const product = products[i]!;
+          const product = products[i];
+
+          if (!product) {
+            throw new Error(`Produto não encontrado para o item ${i + 1}`);
+          }
 
           if (result.hasInsufficientStock) {
             throw new Error(
@@ -266,7 +276,10 @@ export class SaleFacade {
 
         // 4. Calcular totais base (sem taxa de entrega)
         const itemsTotal = input.items.reduce((sum, item, index) => {
-          const product = products[index]!;
+          const product = products[index];
+          if (!product) {
+            throw new Error(`Produto não encontrado para cálculo de totais`);
+          }
           const pricePerUnit = item.pricePerUnit || product.pricePerUnit;
           return sum + (pricePerUnit * item.quantity);
         }, 0);
@@ -276,7 +289,10 @@ export class SaleFacade {
 
         // 6. Construir itens da venda com custos reais dos lotes + rateio da taxa de entrega
         const saleItems: SaleItem[] = input.items.map((item, index) => {
-          const product = products[index]!;
+          const product = products[index];
+          if (!product) {
+            throw new Error(`Produto não encontrado para construção de itens da venda`);
+          }
           const allocationResult = allocationResults[index];
           const pricePerUnit = item.pricePerUnit || product.pricePerUnit;
           const costPerUnit = allocationResult.averageCostPerUnit; // Custo real dos lotes alocados
@@ -297,7 +313,7 @@ export class SaleFacade {
           const profit = totalPrice - totalCost; // Lucro inclui a parte proporcional da taxa de entrega
 
           // Construir objeto base do item (campos obrigatórios)
-          const saleItem: any = {
+          const saleItem: Partial<SaleItem> = {
             productId: item.productId,
             productName: product.name,
             quantity,
@@ -330,7 +346,7 @@ export class SaleFacade {
         const profitMargin = totalAmount > 0 ? (totalProfit / totalAmount) * 100 : 0;
 
         // 8. Criar objeto de venda com todos os campos calculados corretamente
-        const saleData: any = {
+        const saleData: Partial<Sale> = {
           userId: input.userId,
           items: saleItems,
 
@@ -594,10 +610,13 @@ export class SaleFacade {
         }
 
         const updates = activeGoals.map(goal => {
+          if (!goal.id) {
+            throw new Error('Goal ID não encontrado');
+          }
           const newValue = goal.currentValue + saleAmount;
           const isCompleted = newValue >= goal.targetValue;
 
-          return this.goalFacade.update(goal.id!, {
+          return this.goalFacade.update(goal.id, {
             currentValue: newValue,
             isCompleted,
             updatedAt: Timestamp.now()
@@ -679,7 +698,7 @@ export class SaleFacade {
    * Remove campos undefined de um objeto recursivamente
    * Necessário para evitar erros do Firestore com campos undefined
    */
-  private removeUndefinedFields(obj: any): any {
+  private removeUndefinedFields(obj: unknown): unknown {
     if (obj === null || obj === undefined) {
       return obj;
     }
@@ -689,9 +708,9 @@ export class SaleFacade {
     }
 
     if (typeof obj === 'object' && !(obj instanceof Timestamp) && !(obj instanceof Date)) {
-      const cleaned: any = {};
+      const cleaned: Record<string, unknown> = {};
       Object.keys(obj).forEach(key => {
-        const value = obj[key];
+        const value = (obj as Record<string, unknown>)[key];
         if (value !== undefined) {
           cleaned[key] = this.removeUndefinedFields(value);
         }

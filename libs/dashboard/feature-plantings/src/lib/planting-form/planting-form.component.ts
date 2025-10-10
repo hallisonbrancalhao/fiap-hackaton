@@ -444,6 +444,8 @@ export class PlantingFormComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const userId = currentUser.id; // Type narrowing through const assignment
+
     this.submitting.set(true);
     this.error.set(null);
 
@@ -453,9 +455,8 @@ export class PlantingFormComponent implements OnInit, OnDestroy {
     const harvestDate = new Date(values.expectedHarvestDate);
     harvestDate.setHours(23, 59, 59, 999);
 
-    // Non-null assertion safe due to guard clause above
     const plantingInput: PlantingInput = {
-      userId: currentUser.id!,
+      userId,
       productId: values.productId,
       quantityPlanted: values.quantityPlanted,
       expectedHarvestDate: Timestamp.fromDate(harvestDate),
@@ -477,12 +478,11 @@ export class PlantingFormComponent implements OnInit, OnDestroy {
       switchMap((productionId) => {
         // Se há área selecionada no mapa, criar ProductionArea
         const selectedArea = this.selectedPlantingArea();
-        if (selectedArea && selectedArea.coordinates.length >= 3 && currentUser.id) {
+        if (selectedArea && selectedArea.coordinates.length >= 3 && userId) {
           const selectedProduct = this.products().find(p => p.id === values.productId);
 
-          // Non-null assertion safe - currentUser.id validated above
           return this.productionAreaFacade.createProductionArea({
-            userId: currentUser.id!,
+            userId,
             productionId: productionId,
             productName: selectedProduct?.name || 'Produto',
             coordinates: selectedArea.coordinates,

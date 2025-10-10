@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, ChangeDetectionStrategy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { Timestamp } from '@angular/fire/firestore';
 import { Production, PRODUCTION_STATUS, calculatePlantingProgress, getDaysUntilHarvest } from '@fiap-hackaton/dashboard-domain';
 import { ProductionFacade } from '@fiap-hackaton/dashboard-data-access';
 import { AuthLoginFacade } from '@fiap-hackaton/auth-data-access';
@@ -33,7 +34,7 @@ import { AuthLoginFacade } from '@fiap-hackaton/auth-data-access';
         </div>
       } @else if (plantings().length === 0) {
         <div class="bg-gray-50 rounded-lg p-12 text-center">
-          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <svg class="mx-auto h-12 w-12 text-gray-400" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
           <h3 class="mt-2 text-sm font-medium text-gray-900">Nenhum plantio encontrado</h3>
@@ -158,20 +159,20 @@ export class PlantingListComponent implements OnInit {
   loading = signal(true);
   error = signal<string | null>(null);
 
-  activePlantings = computed(() => 
-    this.plantings().filter(p => 
+  activePlantings = computed(() =>
+    this.plantings().filter(p =>
       p.status === PRODUCTION_STATUS.IN_PRODUCTION || p.status === PRODUCTION_STATUS.WAITING
     ).length
   );
 
-  readyForHarvest = computed(() => 
+  readyForHarvest = computed(() =>
     this.plantings().filter(p => {
       if (p.status !== PRODUCTION_STATUS.IN_PRODUCTION) return false;
       return getDaysUntilHarvest(p) <= 0;
     }).length
   );
 
-  harvestedCount = computed(() => 
+  harvestedCount = computed(() =>
     this.plantings().filter(p => p.status === PRODUCTION_STATUS.HARVESTED).length
   );
 
@@ -191,7 +192,7 @@ export class PlantingListComponent implements OnInit {
       next: (plantings) => {
         // Ordenar por data de plantio (mais recentes primeiro)
         this.plantings.set(
-          plantings.sort((a, b) => 
+          plantings.sort((a, b) =>
             b.plantingDate.toMillis() - a.plantingDate.toMillis()
           )
         );
@@ -241,7 +242,7 @@ export class PlantingListComponent implements OnInit {
     return `${baseClasses} ${statusClasses[status]}`;
   }
 
-  formatDate(timestamp: any): string {
+  formatDate(timestamp: Timestamp): string {
     return timestamp.toDate().toLocaleDateString('pt-BR');
   }
 
@@ -254,8 +255,8 @@ export class PlantingListComponent implements OnInit {
 
   completeHarvest(plantingId: string): void {
     // TODO: Navegar para formulário de colheita
-    this.router.navigate(['/dashboard/harvest/new'], { 
-      queryParams: { plantingId } 
+    this.router.navigate(['/dashboard/harvest/new'], {
+      queryParams: { plantingId }
     });
   }
 
