@@ -26,8 +26,8 @@ export class MobileBridgeService {
         try {
           const message = JSON.parse(event.data);
           callback(message);
-        } catch (e) {
-          callback(e);
+        } catch {
+          // Silently ignore parse errors
         }
       });
     }
