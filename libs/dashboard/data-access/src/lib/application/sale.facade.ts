@@ -77,6 +77,7 @@ export class SaleFacade {
 
         // Construir itens da venda
         const saleItems: SaleItem[] = input.items.map((item, index) => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           const product = products[index]!;
           const pricePerUnit = item.pricePerUnit || product.pricePerUnit;
           const costPerUnit = product.averageCost || 0;
@@ -105,6 +106,7 @@ export class SaleFacade {
         const profitMargin = totalAmount > 0 ? (totalProfit / totalAmount) * 100 : 0;
 
         // Criar objeto de venda limpo
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const saleData: any = {
           userId: input.userId,
           items: saleItems,
@@ -140,6 +142,7 @@ export class SaleFacade {
           switchMap(saleId => {
             // Atualizar estoque dos produtos (simples decrement)
             const stockUpdates = input.items.map((item, index) => {
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               const product = products[index]!;
               const newStock = (product.currentStock || 0) - item.quantity;
 
@@ -254,6 +257,7 @@ export class SaleFacade {
         for (let i = 0; i < allocationResults.length; i++) {
           const result = allocationResults[i];
           const item = input.items[i];
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           const product = products[i]!;
 
           if (result.hasInsufficientStock) {
@@ -266,6 +270,7 @@ export class SaleFacade {
 
         // 4. Calcular totais base (sem taxa de entrega)
         const itemsTotal = input.items.reduce((sum, item, index) => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           const product = products[index]!;
           const pricePerUnit = item.pricePerUnit || product.pricePerUnit;
           return sum + (pricePerUnit * item.quantity);
@@ -276,6 +281,7 @@ export class SaleFacade {
 
         // 6. Construir itens da venda com custos reais dos lotes + rateio da taxa de entrega
         const saleItems: SaleItem[] = input.items.map((item, index) => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           const product = products[index]!;
           const allocationResult = allocationResults[index];
           const pricePerUnit = item.pricePerUnit || product.pricePerUnit;
@@ -297,6 +303,7 @@ export class SaleFacade {
           const profit = totalPrice - totalCost; // Lucro inclui a parte proporcional da taxa de entrega
 
           // Construir objeto base do item (campos obrigatórios)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const saleItem: any = {
             productId: item.productId,
             productName: product.name,
@@ -330,6 +337,7 @@ export class SaleFacade {
         const profitMargin = totalAmount > 0 ? (totalProfit / totalAmount) * 100 : 0;
 
         // 8. Criar objeto de venda com todos os campos calculados corretamente
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const saleData: any = {
           userId: input.userId,
           items: saleItems,
@@ -597,6 +605,7 @@ export class SaleFacade {
           const newValue = goal.currentValue + saleAmount;
           const isCompleted = newValue >= goal.targetValue;
 
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           return this.goalFacade.update(goal.id!, {
             currentValue: newValue,
             isCompleted,
@@ -679,6 +688,7 @@ export class SaleFacade {
    * Remove campos undefined de um objeto recursivamente
    * Necessário para evitar erros do Firestore com campos undefined
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private removeUndefinedFields(obj: any): any {
     if (obj === null || obj === undefined) {
       return obj;
@@ -689,6 +699,7 @@ export class SaleFacade {
     }
 
     if (typeof obj === 'object' && !(obj instanceof Timestamp) && !(obj instanceof Date)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const cleaned: any = {};
       Object.keys(obj).forEach(key => {
         const value = obj[key];

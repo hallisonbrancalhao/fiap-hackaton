@@ -434,6 +434,7 @@ export class BatchAnalyticsFacade {
    * Remove campos undefined de um objeto recursivamente
    * Necessário para evitar erros do Firestore com campos undefined
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private removeUndefinedFields(obj: any): any {
     if (obj === null || obj === undefined) {
       return obj;
@@ -444,6 +445,7 @@ export class BatchAnalyticsFacade {
     }
 
     if (typeof obj === 'object' && !(obj instanceof Timestamp) && !(obj instanceof Date)) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const cleaned: any = {};
       Object.keys(obj).forEach(key => {
         const value = obj[key];

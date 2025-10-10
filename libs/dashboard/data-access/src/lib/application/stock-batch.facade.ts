@@ -101,6 +101,7 @@ export class StockBatchFacade {
           const newSoldQuantity = batch.soldQuantity + allocation.quantityAllocated;
           const newStatus = newCurrentQuantity <= 0 ? BATCH_STATUS.SOLD_OUT : batch.status;
 
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           return this.repository.update(batch.id!, {
             currentQuantity: newCurrentQuantity,
             soldQuantity: newSoldQuantity,
@@ -130,6 +131,7 @@ export class StockBatchFacade {
             ? BATCH_STATUS.RESERVED
             : batch.status;
 
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           return this.repository.update(batch.id!, {
             reservedQuantity: newReservedQuantity,
             status: newStatus,
@@ -158,6 +160,7 @@ export class StockBatchFacade {
             ? BATCH_STATUS.AVAILABLE
             : batch.status;
 
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           return this.repository.update(batch.id!, {
             reservedQuantity: newReservedQuantity,
             status: newStatus,
@@ -190,6 +193,7 @@ export class StockBatchFacade {
           ? `${batch.notes}\n[${new Date().toISOString()}] Loss: ${lostQuantity} - ${reason}`
           : `[${new Date().toISOString()}] Loss: ${lostQuantity} - ${reason}`;
 
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         return this.repository.update(batch.id!, {
           currentQuantity: newCurrentQuantity,
           lostQuantity: newLostQuantity,
@@ -212,6 +216,7 @@ export class StockBatchFacade {
         }
 
         const updates = batches.map(batch => {
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           return this.repository.update(batch.id!, {
             status: BATCH_STATUS.EXPIRED,
             updatedAt: Timestamp.now()
@@ -359,6 +364,7 @@ export class StockBatchFacade {
       const allocationCost = quantityToAllocate * batch.averageCostPerUnit;
 
       allocations.push({
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         batchId: batch.id!,
         batchNumber: batch.batchNumber,
         quantityAllocated: quantityToAllocate,
