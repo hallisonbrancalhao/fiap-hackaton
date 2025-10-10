@@ -1,4 +1,4 @@
-# 🌾 Farm Manager - Sistema de Gestão para Fazendas
+# 🌾 FIAP Farm - Sistema de Gestão para Fazendas
 
 [![Angular](https://img.shields.io/badge/Angular-20.2.0-red)](https://angular.dev)
 [![Nx](https://img.shields.io/badge/Nx-21.5.3-blue)](https://nx.dev)
@@ -26,6 +26,10 @@ Suporta **Web** e **Mobile** (via WebView) com comunicação bidirecional para f
 - [Contribuindo](#-contribuindo)
 
 ---
+
+## Links
+- shell: https://develop.d3b4jnj5jq9l80.amplifyapp.com/
+- mapa: https://develop.d3voex5v3mawse.amplifyapp.com/
 
 ## ✨ Features
 
@@ -365,56 +369,6 @@ Consulte: **[libs/map/util/README.md](./libs/map/util/README.md)**
 - 🗺️ **[libs/map/util/README.md](./libs/map/util/README.md)** - Mobile Bridge (Web ↔ Mobile)
 - 🌐 **[.ruler/MAPS.md](./.ruler/MAPS.md)** - Guia completo Leaflet.js
 - 🧪 **[.ruler/ANGULAR_UNIT_TESTING_GUIDE.md](./.ruler/ANGULAR_UNIT_TESTING_GUIDE.md)** - Testes Angular
-
----
-
-## ✅ Status do Projeto
-
-### Concluído ✅
-- ✅ Autenticação (Login + Register)
-- ✅ CRUD de Produtos
-- ✅ Gestão de Vendas
-- ✅ Gestão de Plantios com Mapa
-- ✅ Visualização de Mapas com Labels
-- ✅ Dashboard de Analytics
-- ✅ Integração Mobile (MobileBridgeService)
-- ✅ Rotas configuradas
-- ✅ Firebase integrado
-- ✅ UI responsiva com dark mode
-- ✅ Module Federation (Micro-frontends)
-- ✅ 100% Lint passing
-- ✅ Documentação completa
-
-### Em Desenvolvimento 🚧
-- 🚧 Harvest Management
-- 🚧 Stock Batches
-- 🚧 Goals Tracking
-- 🚧 Mobile App (Flutter)
-
----
-
-## 🎯 Roadmap
-
-### Próximas Features
-1. **Mobile App (Flutter)**
-   - Implementar WebView com MobileBridgeService
-   - Integração completa com microfrontend de mapas
-   - Notificações push
-
-2. **Harvest Management**
-   - Registro de colheitas
-   - Vinculação com plantios
-   - Análise de produtividade
-
-3. **Advanced Analytics**
-   - Previsões baseadas em histórico
-   - Comparativos entre safras
-   - Exportação de relatórios
-
-4. **Offline Support**
-   - Cache de dados essenciais
-   - Sincronização automática
-   - Progressive Web App (PWA)
 
 ---
 
