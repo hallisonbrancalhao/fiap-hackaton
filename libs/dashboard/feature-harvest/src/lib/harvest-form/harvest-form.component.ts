@@ -43,6 +43,7 @@ export class HarvestFormComponent implements OnInit {
   isLoading = signal(false);
   productions = signal<Production[]>([]);
   productionOptions = signal<{ label: string; value: string; production: Production }[]>([]);
+  selectedProduction = signal<Production | null>(null);
 
   qualityOptions = [
     { label: 'Excelente', value: HARVEST_QUALITY.EXCELLENT },
@@ -54,6 +55,45 @@ export class HarvestFormComponent implements OnInit {
   ngOnInit(): void {
     this.initForm();
     this.loadProductions();
+    this.setupHoursWorkedCalculation();
+  }
+
+  private setupHoursWorkedCalculation(): void {
+    // Escutar mudanças nos campos de hora
+    this.harvestForm.get('harvestStartTime')?.valueChanges.subscribe(() => {
+      this.calculateHoursWorked();
+    });
+
+    this.harvestForm.get('harvestEndTime')?.valueChanges.subscribe(() => {
+      this.calculateHoursWorked();
+    });
+  }
+
+  private calculateHoursWorked(): void {
+    const startTime = this.harvestForm.get('harvestStartTime')?.value;
+    const endTime = this.harvestForm.get('harvestEndTime')?.value;
+
+    if (startTime && endTime) {
+      // Converter strings de tempo para minutos desde meia-noite
+      const [startHour, startMin] = startTime.split(':').map(Number);
+      const [endHour, endMin] = endTime.split(':').map(Number);
+
+      const startMinutes = startHour * 60 + startMin;
+      let endMinutes = endHour * 60 + endMin;
+
+      // Se hora final é menor, assumir que passou para o dia seguinte
+      if (endMinutes < startMinutes) {
+        endMinutes += 24 * 60; // Adicionar 24 horas
+      }
+
+      const diffMinutes = endMinutes - startMinutes;
+      const hours = diffMinutes / 60;
+
+      // Atualizar o campo com 1 casa decimal
+      this.harvestForm.patchValue({
+        hoursWorked: Number(hours.toFixed(1))
+      }, { emitEvent: false });
+    }
   }
 
   private initForm(): void {
@@ -114,10 +154,13 @@ export class HarvestFormComponent implements OnInit {
     const production = this.productions().find((p) => p.id === productionId);
 
     if (production) {
+      this.selectedProduction.set(production);
       // Preencher dados do produto automaticamente
       this.harvestForm.patchValue({
         quantityHarvested: production.quantityPlanted,
       });
+    } else {
+      this.selectedProduction.set(null);
     }
   }
 

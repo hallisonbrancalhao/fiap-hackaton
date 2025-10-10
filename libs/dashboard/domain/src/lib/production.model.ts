@@ -13,6 +13,7 @@ export interface Production {
   productId: string;
   productName: string;
   quantityPlanted: number;
+  plantingUnit?: string;
   quantityHarvested?: number;
   unit: string;
   status: PRODUCTION_STATUS;
