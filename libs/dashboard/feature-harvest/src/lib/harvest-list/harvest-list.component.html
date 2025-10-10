@@ -1,0 +1,86 @@
+<div class="container mx-auto p-4">
+  <p-toast />
+  <p-confirmDialog />
+
+  <p-card>
+    <ng-template pTemplate="header">
+      <div class="flex items-center justify-between p-4">
+        <h2 class="text-2xl font-bold">Colheitas</h2>
+        <p-button label="Nova Colheita" icon="pi pi-plus" (onClick)="onNewHarvest()" />
+      </div>
+    </ng-template>
+
+    <p-table [value]="harvests()" [loading]="isLoading()" [paginator]="true" [rows]="10"
+      [rowsPerPageOptions]="[10, 25, 50]" [showCurrentPageReport]="true"
+      currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} colheitas"
+      [globalFilterFields]="['productName', 'quality']" responsiveLayout="scroll">
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7" class="text-center py-8">
+            <div class="flex flex-col items-center gap-3">
+              <i class="pi pi-inbox text-4xl text-gray-400"></i>
+              <p class="text-gray-500">Nenhuma colheita registrada</p>
+              <p-button label="Registrar Primeira Colheita" icon="pi pi-plus" (onClick)="onNewHarvest()" />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="header">
+        <tr>
+          <th pSortableColumn="productName">
+            Produto <p-sortIcon field="productName" />
+          </th>
+          <th pSortableColumn="quantityHarvested">
+            Quantidade <p-sortIcon field="quantityHarvested" />
+          </th>
+          <th pSortableColumn="quality">
+            Qualidade <p-sortIcon field="quality" />
+          </th>
+          <th pSortableColumn="harvestDate">
+            Data <p-sortIcon field="harvestDate" />
+          </th>
+          <th>Perda</th>
+          <th>Custo Total</th>
+          <th>Ações</th>
+        </tr>
+      </ng-template>
+
+      <ng-template pTemplate="body" let-harvest>
+        <tr>
+          <td>{{ harvest.productName }}</td>
+          <td>{{ harvest.quantityHarvested | number:'1.2-2' }} {{ harvest.unit }}</td>
+          <td>
+            <p-tag [value]="getQualityLabel(harvest.quality)" [severity]="getQualitySeverity(harvest.quality)" />
+          </td>
+          <td>{{ formatDate(harvest.harvestDate) }}</td>
+          <td>
+            @if (harvest.quantityLost && harvest.quantityLost > 0) {
+            <span class="text-red-600">
+              {{ harvest.quantityLost | number:'1.2-2' }} {{ harvest.unit }}
+              @if (harvest.lossPercentage) {
+              <span class="text-sm">({{ harvest.lossPercentage | number:'1.1-1' }}%)</span>
+              }
+            </span>
+            } @else {
+            <span class="text-gray-400">-</span>
+            }
+          </td>
+          <td>
+            @if (harvest.harvestCost) {
+            {{ harvest.harvestCost | currency:'BRL' }}
+            } @else {
+            <span class="text-gray-400">-</span>
+            }
+          </td>
+          <td>
+            <div class="flex gap-2">
+              <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true"
+                (onClick)="onDelete(harvest)" pTooltip="Excluir" tooltipPosition="top" />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>

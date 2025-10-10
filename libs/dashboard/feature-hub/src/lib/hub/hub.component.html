@@ -1,0 +1,385 @@
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4 md:p-8">
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Hero Header Section -->
+    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-8 md:p-10 shadow-2xl">
+      <div class="absolute inset-0 bg-black opacity-10"></div>
+      <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div class="text-white space-y-3">
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-xl bg-white bg-opacity-20 backdrop-blur-lg flex items-center justify-center">
+              <i class="pi pi-home text-3xl"></i>
+            </div>
+            <div>
+              <h1 class="text-4xl md:text-5xl font-black tracking-tight">Dashboard</h1>
+              <p class="text-white text-opacity-90 text-base md:text-lg font-medium mt-1">
+                FIAP FARM - Central de Gestão Inteligente
+              </p>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p-button
+            icon="pi pi-refresh"
+            severity="secondary"
+            [outlined]="true"
+            size="large"
+            (onClick)="refreshStats()"
+            [loading]="isLoadingStats()"
+            label="Atualizar Dados"
+            data-testid="refresh-button"
+            styleClass="!bg-white text-indigo-600 border-2 border-white hover:bg-indigo-50 font-semibold shadow-lg"
+          />
+        </div>
+      </div>
+      <!-- Decorative Elements -->
+      <div class="absolute -bottom-6 -right-6 w-40 h-40 bg-white opacity-5 rounded-full"></div>
+      <div class="absolute -top-8 -left-8 w-32 h-32 bg-white opacity-5 rounded-full"></div>
+    </div>
+
+    <!-- Statistics Cards Loading -->
+    @if (isLoadingStats()) {
+      <lib-card customClass="shadow-lg">
+        <lib-loading message="Carregando estatísticas..." />
+      </lib-card>
+    }
+
+    <!-- Statistics Overview - Premium Cards -->
+    @if (!isLoadingStats()) {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- Products Card -->
+        <div
+          (click)="navigateTo('/dashboard/products')"
+          (keyup.enter)="navigateTo('/dashboard/products')"
+          tabindex="0"
+          role="button"
+          aria-label="Ver produtos cadastrados"
+          data-testid="stat-products"
+          class="group cursor-pointer transform transition-all duration-300 hover:-translate-y-2 hover:scale-105"
+        >
+          <div class="relative h-full rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-6 shadow-xl hover:shadow-2xl overflow-hidden">
+            <!-- Background Pattern -->
+            <div class="absolute inset-0 opacity-10">
+              <div class="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -mr-16 -mt-16"></div>
+              <div class="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full -ml-12 -mb-12"></div>
+            </div>
+
+            <div class="relative z-10 h-full flex flex-col">
+              <div class="flex items-start justify-between mb-4">
+                <div class="w-14 h-14 rounded-xl bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                  <i class="pi pi-box text-white text-2xl"></i>
+                </div>
+                <div class="w-8 h-8 rounded-full bg-white bg-opacity-20 flex items-center justify-center group-hover:bg-opacity-30 transition-all">
+                  <i class="pi pi-arrow-right text-white text-sm group-hover:translate-x-1 transition-transform"></i>
+                </div>
+              </div>
+
+              <div class="flex-grow">
+                <p class="text-emerald-100 text-sm font-semibold uppercase tracking-wider mb-2">Produtos</p>
+                <p class="text-white text-4xl font-black mb-3" data-testid="products-count">
+                  {{ stats().totalProducts }}
+                </p>
+                <p class="text-emerald-50 text-sm font-medium">
+                  <i class="pi pi-database mr-2"></i>Total no catálogo
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sales Card -->
+        <div
+          (click)="navigateTo('/dashboard/sales')"
+          (keyup.enter)="navigateTo('/dashboard/sales')"
+          tabindex="0"
+          role="button"
+          aria-label="Ver vendas do mês"
+          data-testid="stat-sales"
+          class="group cursor-pointer transform transition-all duration-300 hover:-translate-y-2 hover:scale-105"
+        >
+          <div class="relative h-full rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-600 p-6 shadow-xl hover:shadow-2xl overflow-hidden">
+            <!-- Background Pattern -->
+            <div class="absolute inset-0 opacity-10">
+              <div class="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -mr-16 -mt-16"></div>
+              <div class="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full -ml-12 -mb-12"></div>
+            </div>
+
+            <div class="relative z-10 h-full flex flex-col">
+              <div class="flex items-start justify-between mb-4">
+                <div class="w-14 h-14 rounded-xl bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                  <i class="pi pi-shopping-cart text-white text-2xl"></i>
+                </div>
+                <div class="w-8 h-8 rounded-full bg-white bg-opacity-20 flex items-center justify-center group-hover:bg-opacity-30 transition-all">
+                  <i class="pi pi-arrow-right text-white text-sm group-hover:translate-x-1 transition-transform"></i>
+                </div>
+              </div>
+
+              <div class="flex-grow">
+                <p class="text-blue-100 text-sm font-semibold uppercase tracking-wider mb-2">Vendas</p>
+                <p class="text-white text-4xl font-black mb-3" data-testid="sales-count">
+                  {{ stats().recentSalesCount }}
+                </p>
+                <p class="text-blue-50 text-sm font-medium">
+                  <i class="pi pi-calendar mr-2"></i>Últimos 30 dias
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Revenue Card -->
+        <div
+          (click)="navigateTo('/dashboard/analytics')"
+          (keyup.enter)="navigateTo('/dashboard/analytics')"
+          tabindex="0"
+          role="button"
+          aria-label="Ver receita mensal"
+          data-testid="stat-revenue"
+          class="group cursor-pointer transform transition-all duration-300 hover:-translate-y-2 hover:scale-105"
+        >
+          <div class="relative h-full rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 p-6 shadow-xl hover:shadow-2xl overflow-hidden">
+            <!-- Background Pattern -->
+            <div class="absolute inset-0 opacity-10">
+              <div class="absolute top-0 right-0 w-32 h-32 bg-white rounded-full -mr-16 -mt-16"></div>
+              <div class="absolute bottom-0 left-0 w-24 h-24 bg-white rounded-full -ml-12 -mb-12"></div>
+            </div>
+
+            <div class="relative z-10 h-full flex flex-col">
+              <div class="flex items-start justify-between mb-4">
+                <div class="w-14 h-14 rounded-xl bg-white bg-opacity-20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                  <i class="pi pi-dollar text-white text-2xl"></i>
+                </div>
+                <div class="w-8 h-8 rounded-full bg-white bg-opacity-20 flex items-center justify-center group-hover:bg-opacity-30 transition-all">
+                  <i class="pi pi-arrow-right text-white text-sm group-hover:translate-x-1 transition-transform"></i>
+                </div>
+              </div>
+
+              <div class="flex-grow">
+                <p class="text-violet-100 text-sm font-semibold uppercase tracking-wider mb-2">Receita</p>
+                <p class="text-white text-4xl font-black mb-3" data-testid="revenue-amount">
+                  {{ stats().monthlyRevenue | currency: 'BRL' }}
+                </p>
+                <p class="text-violet-50 text-sm font-medium">
+                  <i class="pi pi-chart-line mr-2"></i>Faturamento mensal
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    }
+
+    <!-- Quick Access Navigation -->
+    <div class="mt-8">
+      <div class="mb-6">
+        <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
+          <div class="w-1 h-8 bg-gradient-to-b from-indigo-600 to-purple-600 rounded-full"></div>
+          Acesso Rápido
+        </h2>
+        <p class="text-slate-600 mt-2 ml-7">Navegue pelas principais funcionalidades do sistema</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        @for (card of dashboardCards; track card.id) {
+          <div
+            (click)="navigateTo(card.route)"
+            (keyup.enter)="navigateTo(card.route)"
+            tabindex="0"
+            role="button"
+            [attr.aria-label]="'Navegar para ' + card.title"
+            [attr.data-testid]="'card-' + card.id"
+            class="group cursor-pointer transform transition-all duration-300 hover:-translate-y-1"
+          >
+            <div class="h-full rounded-xl bg-white p-6 shadow-lg hover:shadow-2xl border-2 border-transparent hover:border-indigo-200 transition-all">
+              <div class="flex items-start gap-4 mb-4">
+                <div
+                  class="flex-shrink-0 w-16 h-16 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 transition-transform"
+                  [class]="card.gradient"
+                >
+                  <i [class]="card.icon + ' text-3xl ' + card.iconColor"></i>
+                </div>
+                <div class="flex-grow">
+                  <h3 class="text-xl font-bold text-slate-800 mb-1 group-hover:text-indigo-600 transition-colors">
+                    {{ card.title }}
+                  </h3>
+                  <div class="flex items-center text-sm font-medium" [class]="card.iconColor">
+                    <span>Ver mais</span>
+                    <i class="pi pi-arrow-right ml-2 text-xs group-hover:translate-x-1 transition-transform"></i>
+                  </div>
+                </div>
+              </div>
+              <p class="text-sm text-slate-600 leading-relaxed">
+                {{ card.description }}
+              </p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Active Plantings Section -->
+    @if (!isLoadingPlantings()) {
+      <div class="mt-8">
+        <div class="mb-6 flex justify-between items-center">
+          <div>
+            <h2 class="text-2xl font-bold text-slate-800 flex items-center gap-3">
+              <div class="w-1 h-8 bg-gradient-to-b from-green-600 to-emerald-600 rounded-full"></div>
+              Plantios em Andamento
+            </h2>
+            <p class="text-slate-600 mt-2 ml-7">Acompanhe o progresso dos seus plantios ativos</p>
+          </div>
+          @if (activePlantings().length > 0) {
+            <button
+              (click)="navigateTo('/dashboard/plantings')"
+              class="text-green-600 hover:text-green-700 font-semibold flex items-center gap-2">
+              Ver todos
+              <i class="pi pi-arrow-right text-sm"></i>
+            </button>
+          }
+        </div>
+
+        @if (activePlantings().length === 0) {
+          <div class="bg-green-50 rounded-xl p-12 text-center border-2 border-green-100">
+            <div class="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+              <i class="pi pi-leaf text-4xl text-green-600"></i>
+            </div>
+            <h3 class="text-xl font-bold text-slate-800 mb-2">Nenhum plantio em andamento</h3>
+            <p class="text-slate-600 mb-6">Comece registrando seu primeiro plantio e acompanhe o desenvolvimento</p>
+            <button
+              (click)="navigateTo('/dashboard/plantings/new')"
+              class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium inline-flex items-center gap-2">
+              <i class="pi pi-plus"></i>
+              Registrar Plantio
+            </button>
+          </div>
+        } @else {
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            @for (planting of activePlantings(); track planting.id) {
+              <div
+                class="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl border-2 border-gray-100 hover:border-green-200 transition-all cursor-pointer group">
+
+                <!-- Header -->
+                <div class="flex justify-between items-start mb-4">
+                  <div class="flex-1">
+                    <h3 class="text-lg font-bold text-slate-800 group-hover:text-green-600 transition-colors">
+                      {{ planting.productName }}
+                    </h3>
+                    <p class="text-sm text-slate-600 mt-1">
+                      {{ planting.quantityPlanted }} {{ planting.unit }}
+                      @if (planting.varietyName) {
+                        · {{ planting.varietyName }}
+                      }
+                    </p>
+                  </div>
+                  <div class="flex-shrink-0 w-12 h-12 rounded-lg bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition-colors">
+                    <i class="pi pi-leaf text-xl text-green-600"></i>
+                  </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="mb-4">
+                  <div class="flex justify-between text-sm mb-2">
+                    <span class="font-medium text-slate-700">Progresso</span>
+                    <span class="font-bold text-green-600">{{ getPlantingProgress(planting) }}%</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                    <div
+                      class="bg-gradient-to-r from-green-500 to-emerald-500 h-3 rounded-full transition-all duration-500"
+                      [style.width.%]="getPlantingProgress(planting)">
+                    </div>
+                  </div>
+                  <p class="text-xs text-slate-500 mt-2 flex items-center gap-1">
+                    <i class="pi pi-clock"></i>
+                    {{ getDaysRemaining(planting) }}
+                  </p>
+                </div>
+
+                <!-- Dates -->
+                <div class="grid grid-cols-2 gap-4 text-sm border-t border-gray-100 pt-4">
+                  <div>
+                    <p class="text-slate-500 mb-1">Plantio</p>
+                    <p class="font-semibold text-slate-800">{{ formatDate(planting.plantingDate) }}</p>
+                  </div>
+                  <div>
+                    <p class="text-slate-500 mb-1">Colheita Prevista</p>
+                    <p class="font-semibold text-slate-800">{{ formatDate(planting.expectedHarvestDate) }}</p>
+                  </div>
+                </div>
+
+                <!-- Optional: Area info -->
+                @if (planting.areaPlanted) {
+                  <div class="mt-4 pt-4 border-t border-gray-100">
+                    <div class="flex items-center gap-2 text-sm text-slate-600">
+                      <i class="pi pi-map-marker text-green-600"></i>
+                      <span>{{ planting.areaPlanted }} {{ planting.areaUnit }}</span>
+                      @if (planting.plotLocation) {
+                        <span class="text-slate-400">·</span>
+                        <span>{{ planting.plotLocation }}</span>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          @if (activePlantings().length === 5) {
+            <div class="mt-6 text-center">
+              <button
+                (click)="navigateTo('/dashboard/plantings')"
+                class="text-green-600 hover:text-green-700 font-semibold inline-flex items-center gap-2">
+                Ver todos os plantios
+                <i class="pi pi-arrow-right text-sm"></i>
+              </button>
+            </div>
+          }
+        }
+      </div>
+    }
+
+    <!-- Help & Tips Banner -->
+    <div class="mt-8">
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 p-8 shadow-xl">
+        <div class="absolute inset-0 bg-black opacity-5"></div>
+        <div class="relative z-10 flex flex-col md:flex-row items-start gap-6">
+          <div class="flex-shrink-0">
+            <div class="w-16 h-16 rounded-2xl bg-white bg-opacity-90 flex items-center justify-center shadow-lg backdrop-blur-sm">
+              <i class="pi pi-lightbulb text-orange-600 text-3xl"></i>
+            </div>
+          </div>
+          <div class="flex-grow space-y-4">
+            <div>
+              <h3 class="text-2xl font-black text-white mb-2 flex items-center gap-2">
+                💡 Dicas de Produtividade
+              </h3>
+              <p class="text-white text-opacity-95 leading-relaxed">
+                Maximize sua eficiência utilizando os atalhos de navegação e mantendo seus dados sempre atualizados.
+                Todas as estatísticas são calculadas em tempo real.
+              </p>
+            </div>
+            <div class="flex flex-wrap gap-3">
+              <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-white text-orange-700 shadow-md">
+                <i class="pi pi-check-circle mr-2"></i>
+                Dados em tempo real
+              </span>
+              <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-white text-orange-700 shadow-md">
+                <i class="pi pi-bolt mr-2"></i>
+                Acesso rápido
+              </span>
+              <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-white text-orange-700 shadow-md">
+                <i class="pi pi-chart-bar mr-2"></i>
+                Análises detalhadas
+              </span>
+            </div>
+          </div>
+        </div>
+        <!-- Decorative circles -->
+        <div class="absolute -bottom-8 -right-8 w-40 h-40 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute -top-6 -left-6 w-32 h-32 bg-white opacity-10 rounded-full"></div>
+      </div>
+    </div>
+
+  </div>
+</div>

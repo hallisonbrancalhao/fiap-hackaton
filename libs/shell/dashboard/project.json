@@ -1,0 +1,21 @@
+{
+	"name": "shell-dashboard",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "libs/shell/dashboard/src",
+	"prefix": "lib",
+	"projectType": "library",
+	"tags": ["type:shell", "scope:shared"],
+	"targets": {
+		"test": {
+			"executor": "@nx/jest:jest",
+			"outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+			"options": {
+				"jestConfig": "libs/shell/dashboard/jest.config.ts",
+				"tsConfig": "libs/shell/dashboard/tsconfig.spec.json"
+			}
+		},
+		"lint": {
+			"executor": "@nx/eslint:lint"
+		}
+	}
+}
